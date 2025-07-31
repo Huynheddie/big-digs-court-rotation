@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Team } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
@@ -38,17 +38,31 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 pr-8"
-      onClick={onCancel}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title"
-    >
-      <div 
-        className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-8 max-w-6xl w-full mx-auto max-h-[95vh] flex flex-col shadow-large animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 pr-8"
+        onClick={onCancel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
       >
+        <motion.div 
+          className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-8 max-w-6xl w-full mx-auto max-h-[95vh] flex flex-col shadow-large"
+          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.8, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.8, opacity: 0, y: 50 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 400, 
+            damping: 35,
+            duration: 0.25
+          }}
+        >
         <h2 id="modal-title" className="text-heading-2 text-primary-900 mb-6 text-center">
           Add Teams to Queue
         </h2>
@@ -185,7 +199,8 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }; 

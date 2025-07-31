@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { FormData } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
@@ -32,14 +33,28 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
                          formData.player4.trim();
 
   return (
-    <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onCancel}
-    >
-      <div 
-        className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        onClick={onCancel}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
       >
+        <motion.div 
+          className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+          initial={{ scale: 0.8, opacity: 0, y: 50 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.8, opacity: 0, y: 50 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 400, 
+            damping: 35,
+            duration: 0.25
+          }}
+        >
         <h2 className="text-2xl font-bold mb-4 text-orange-900 text-center">Add New Team</h2>
         
         <form onSubmit={onSubmit} className="space-y-4">
@@ -149,7 +164,8 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }; 

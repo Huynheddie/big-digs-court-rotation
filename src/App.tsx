@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useVolleyballState } from './hooks/useVolleyballState';
 import { CourtCard } from './components/CourtCard';
 import { Accordion } from './components/Accordion';
@@ -241,8 +242,13 @@ function AppContent() {
         role="main"
       >
         <div className="container-responsive py-8">
-
-          {currentPage === 'courts' ? (
+          <motion.div
+            key={currentPage}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.1 }}
+          >
+            {currentPage === 'courts' ? (
             <>
               {/* Court Cards - Enhanced Layout */}
               <div className="mb-8">
@@ -346,14 +352,15 @@ function AppContent() {
                 </div>
               </div>
             </>
-          ) : (
-            /* Teams Page */
-            <TeamsCard
-              teams={registeredTeams}
-              onOpenModal={handleOpenModal}
-              onOpenTeamDetails={handleOpenTeamDetails}
-            />
-          )}
+                      ) : (
+              /* Teams Page */
+              <TeamsCard
+                teams={registeredTeams}
+                onOpenModal={handleOpenModal}
+                onOpenTeamDetails={handleOpenTeamDetails}
+              />
+            )}
+          </motion.div>
         </div>
       </main>
 
