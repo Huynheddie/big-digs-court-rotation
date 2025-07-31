@@ -18,7 +18,6 @@ interface CourtDetailsModalProps {
   court: Court | null;
   courtIndex: number | null;
   teamQueue: Team[];
-  registeredTeams: Team[];
   teams: Court[]; // Add teams array to check used colors
   onClose: () => void;
   onNetColorChange: (courtIndex: number, newColor: string) => void;
@@ -30,7 +29,6 @@ export const CourtDetailsModal: React.FC<CourtDetailsModalProps> = ({
   court,
   courtIndex,
   teamQueue,
-  registeredTeams,
   teams,
   onClose,
   onNetColorChange,
@@ -79,7 +77,7 @@ export const CourtDetailsModal: React.FC<CourtDetailsModalProps> = ({
 
   // Get used net colors from other courts
   const usedNetColors = teams
-    .filter((c, index) => index !== courtIndex) // Exclude current court
+    .filter((c) => teams.indexOf(c) !== courtIndex) // Exclude current court
     .map(c => c.netColor);
 
   const handleTeam1Change = (teamName: string) => {

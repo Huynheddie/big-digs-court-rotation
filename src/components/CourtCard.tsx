@@ -3,8 +3,6 @@ import type { Court } from '../types';
 import {
   getCourtBackgroundClass,
   getCourtTextClass,
-  getNetColorClass,
-  getNetColorBgClass,
   getTeam1ColorClass,
   getTeam1BorderClass,
   getTeam1AccentClass,

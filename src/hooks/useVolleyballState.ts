@@ -203,7 +203,6 @@ export const useVolleyballState = () => {
           } else {
             // Kings Court - winner stays, loser leaves (unless winner has 2 consecutive wins)
             const winningTeam = winner;
-            const losingTeam = loser;
             
             // Determine which team position the winner was in
             const winnerWasTeam1 = court.team1.name === winningTeam.name;
@@ -304,7 +303,16 @@ export const useVolleyballState = () => {
   };
 
   const handleAddSelectedTeamsToQueue = () => {
-    const teamsToAdd = Array.from(selectedTeams).map(index => registeredTeams[index]);
+    // Get available teams (not on courts and not in queue)
+    const availableTeams = registeredTeams.filter(team => {
+      const inQueue = teamQueue.some(queueTeam => queueTeam.name === team.name);
+      const onCourt = teams.some(court => 
+        court.team1.name === team.name || court.team2.name === team.name
+      );
+      return !inQueue && !onCourt;
+    });
+    
+    const teamsToAdd = Array.from(selectedTeams).map(index => availableTeams[index]);
     const newTeamQueue = [...teamQueue, ...teamsToAdd];
     setTeamQueue(newTeamQueue);
     setSelectedTeams(new Set());

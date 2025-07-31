@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useVolleyballState } from './hooks/useVolleyballState';
 import { CourtCard } from './components/CourtCard';
 import { Accordion } from './components/Accordion';
@@ -11,7 +11,6 @@ import { ReportGameModal } from './components/modals/ReportGameModal';
 import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
 import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
-import { getNetColorBorderClass, getNetColorFocusClass, getCourtTextClass } from './utils/colorUtils';
 
 function App() {
   const {
@@ -28,7 +27,6 @@ function App() {
     formData,
     gameScoreData,
     selectedTeams,
-    editingTeamIndex,
     reportingCourtIndex,
     deletingTeamIndex,
     selectedTeamForDetails,
@@ -36,23 +34,8 @@ function App() {
     selectedCourtForDetails,
 
     // Setters
-    setTeams,
-    setRegisteredTeams,
-    setTeamQueue,
-    setIsModalOpen,
-    setIsEditModalOpen,
-    setIsReportGameModalOpen,
     setIsAddToQueueModalOpen,
-    setTeamDetailsModalOpen,
-    setFormData,
-    setGameScoreData,
-    setSelectedTeams,
-    setEditingTeamIndex,
-    setReportingCourtIndex,
     setDeletingTeamIndex,
-    setSelectedTeamForDetails,
-    setCourtDetailsModalOpen,
-    setSelectedCourtForDetails,
 
     // Handlers
     handleInputChange,
@@ -60,12 +43,10 @@ function App() {
     handleSubmit,
     handleEditSubmit,
     handleCancel,
-    handleEditTeam,
     handleReportGame,
     handleReportGameSubmit,
     handleNetColorChange,
     handleOpenModal,
-    handleAddToQueue,
     handleAddSelectedTeamsToQueue,
     handleToggleTeamSelection,
     handleSelectAllTeams,
@@ -326,7 +307,6 @@ function App() {
         court={selectedCourtForDetails !== null ? teams[selectedCourtForDetails] : null}
         courtIndex={selectedCourtForDetails}
         teamQueue={teamQueue}
-        registeredTeams={registeredTeams}
         teams={teams}
         onClose={handleCloseCourtDetails}
         onNetColorChange={handleNetColorChange}

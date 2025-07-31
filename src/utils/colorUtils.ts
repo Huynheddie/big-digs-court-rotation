@@ -1,4 +1,4 @@
-import type { NetColor } from '../types';
+
 
 export const getNetColorClass = (color: string): string => {
   switch (color) {

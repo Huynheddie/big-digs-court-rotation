@@ -17,7 +17,6 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
   team,
   gameEvents,
   onClose,
-  onEdit,
   onDelete,
   teamIndex
 }) => {
@@ -258,7 +257,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
             </div>
           ) : (
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {getGameHistory().map((game, index) => (
+              {getGameHistory().map((game) => (
                 <div
                   key={game.id}
                   className={`rounded-lg p-3 border ${
