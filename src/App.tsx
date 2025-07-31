@@ -39,6 +39,7 @@ function AppContent() {
 
     // Setters
     setIsAddToQueueModalOpen,
+    setSelectedTeams,
     setDeletingTeamIndex,
 
     // Handlers
@@ -70,9 +71,6 @@ function AppContent() {
 
   // Page state
   const [currentPage, setCurrentPage] = useState<'courts' | 'teams'>('courts');
-
-  // Accordion state
-  const [isQueueOpen, setIsQueueOpen] = useState(true);
 
   const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
@@ -264,15 +262,13 @@ function AppContent() {
                 </div>
               </div>
 
-              {/* Team Queue Accordion - Enhanced */}
-              <Accordion
-                title={`Queue (${teamQueue.length})`}
-                isOpen={isQueueOpen}
-                onToggle={setIsQueueOpen}
-                className="card-glass border-primary-200 mb-8"
-                titleClassName="text-primary-900"
-              >
-                <div className="flex justify-end mb-6 pt-4">
+              {/* Team Queue Card - Full Layout */}
+              <div className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-2xl shadow-soft mb-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4">
+                  <h2 className="text-heading-2 text-primary-900">
+                    Queue ({teamQueue.length})
+                  </h2>
                   <button
                     onClick={() => setIsAddToQueueModalOpen(true)}
                     className="btn-primary text-sm flex items-center shadow-md"
@@ -281,48 +277,54 @@ function AppContent() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Add Team
+                    Add Team to Queue
                   </button>
                 </div>
                 
-                <div className="max-h-96 overflow-y-auto">
-                  {teamQueue.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">
-                      <div className="text-4xl mb-4">🏐</div>
-                      <p className="text-body-small">No teams in queue</p>
-                      <p className="text-caption mt-2">Add teams to get started!</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {teamQueue.map((team, index) => (
-                        <div key={`${team.name}-${index}`} className="card-glass border-primary-300 relative group">
-                          <button
-                            onClick={() => handleRemoveFromQueueWithToast(index)}
-                            className="absolute top-3 right-3 text-gray-500 hover:text-error-600 transition-colors text-xl font-bold leading-none opacity-0 group-hover:opacity-100"
-                            title="Remove from queue"
-                            aria-label={`Remove ${team.name} from queue`}
-                          >
-                            ×
-                          </button>
-                          <h3 className="text-heading-4 text-primary-900 mb-4 text-center pr-8 break-words">
-                            {team.name}
-                          </h3>
-                          <div className="space-y-2">
-                            {team.players.map((player, playerIndex) => (
-                              <div key={playerIndex} className="flex items-center justify-between p-3 bg-primary-50/60 rounded-xl border border-primary-200">
-                                <span className="text-primary-800 font-medium text-sm">{player}</span>
-                                <span className="text-xs text-primary-700 bg-primary-200 px-2 py-1 rounded-lg">
-                                  P{playerIndex + 1}
-                                </span>
-                              </div>
-                            ))}
+                {/* Divider */}
+                <div className="border-t border-primary-200 mx-6"></div>
+                
+                {/* Content */}
+                <div className="px-6 pb-6">
+                  <div className="max-h-[600px] overflow-y-auto">
+                    {teamQueue.length === 0 ? (
+                      <div className="text-center py-16 text-gray-500">
+                        <div className="text-5xl mb-6">🏐</div>
+                        <h3 className="text-heading-4 text-gray-700 mb-2">No teams in queue</h3>
+                        <p className="text-body-small mb-6">Add teams to get started!</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 px-2">
+                        {teamQueue.map((team, index) => (
+                          <div key={`${team.name}-${index}`} className="bg-white rounded-2xl shadow-medium border-2 border-primary-300 relative group p-6">
+                            <button
+                              onClick={() => handleRemoveFromQueueWithToast(index)}
+                              className="absolute top-3 right-3 text-gray-500 hover:text-error-600 text-xl font-bold leading-none"
+                              title="Remove from queue"
+                              aria-label={`Remove ${team.name} from queue`}
+                            >
+                              ×
+                            </button>
+                            <h3 className="text-heading-4 text-primary-900 mb-4 text-center pr-8 break-words pt-4">
+                              {team.name}
+                            </h3>
+                            <div className="space-y-3">
+                              {team.players.map((player, playerIndex) => (
+                                <div key={playerIndex} className="flex items-center justify-between p-4 bg-primary-100/80 rounded-xl border border-primary-300">
+                                  <span className="text-primary-900 font-medium text-sm truncate mr-4">{player}</span>
+                                  <span className="text-xs text-primary-800 bg-primary-300 px-4 py-2 rounded-lg font-medium flex-shrink-0">
+                                    P{playerIndex + 1}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </Accordion>
+              </div>
             </>
           ) : (
             /* Teams Page */
@@ -360,6 +362,7 @@ function AppContent() {
         onSelectAllTeams={handleSelectAllTeams}
         onAddSelectedTeams={handleAddSelectedTeamsToQueueWithToast}
         onCancel={handleCancel}
+        setSelectedTeams={setSelectedTeams}
       />
 
       <DeleteTeamModal

@@ -151,7 +151,7 @@ export const CourtDetailsModal: React.FC<CourtDetailsModalProps> = ({
                         ? `${getNetColorBgClass(color)} border-gray-400`
                         : isDisabled
                         ? 'bg-gray-100 border-gray-200 cursor-not-allowed opacity-50'
-                        : 'bg-white border-gray-300 hover:border-gray-400 hover:scale-105'
+                        : 'bg-white border-gray-300 hover:border-gray-400'
                     }`}
                     title={isDisabled ? `Color ${color} is already in use by another court` : `Select ${color} net color`}
                   >

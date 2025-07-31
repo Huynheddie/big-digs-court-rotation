@@ -48,6 +48,16 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
     }
   };
 
+  const getEventColorClasses = (event: GameEvent) => {
+    // Game victories should be green
+    if (event.type === 'game_reported' && event.winner && event.loser) {
+      return 'text-green-600 bg-green-50 border-green-200';
+    }
+    
+    // Use net color for other events
+    return getNetColorClasses(event.netColor);
+  };
+
   const formatTimestamp = (timestamp: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
@@ -200,7 +210,7 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
               return (
                 <div
                   key={event.id}
-                  className={`rounded-lg border transition-all duration-200 ${getNetColorClasses(event.netColor)}`}
+                  className={`rounded-lg border transition-all duration-200 ${getEventColorClasses(event)}`}
                 >
                   {/* Event Header - Clickable */}
                   <button

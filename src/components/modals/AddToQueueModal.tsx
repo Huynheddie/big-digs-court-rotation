@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Team } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
@@ -10,6 +10,7 @@ interface AddToQueueModalProps {
   onSelectAllTeams: () => void;
   onAddSelectedTeams: () => void;
   onCancel: () => void;
+  setSelectedTeams: (teams: Set<number>) => void;
 }
 
 export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
@@ -19,36 +20,51 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   onToggleTeamSelection,
   onSelectAllTeams,
   onAddSelectedTeams,
-  onCancel
+  onCancel,
+  setSelectedTeams
 }) => {
   useEscapeKey(onCancel, isOpen);
+
+  useEffect(() => {
+    console.log('Current selectedTeams:', Array.from(selectedTeams));
+  }, [selectedTeams]);
 
   if (!isOpen) return null;
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 pr-8"
       onClick={onCancel}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <div 
-        className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col shadow-2xl"
+        className="bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 rounded-2xl p-8 max-w-6xl w-full mx-auto max-h-[95vh] flex flex-col shadow-large animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold text-blue-900 mb-6 text-center">
+        <h2 id="modal-title" className="text-heading-2 text-primary-900 mb-6 text-center">
           Add Teams to Queue
         </h2>
         
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-6">
           <button
-            onClick={onSelectAllTeams}
+            onClick={() => {
+              // Select all teams by creating indices for all available teams
+              const allIndices = new Set(Array.from({ length: availableTeams.length }, (_, i) => i));
+              console.log('Select All clicked, setting indices:', Array.from(allIndices));
+              console.log('Available teams count:', availableTeams.length);
+              // Clear current selection and set all teams as selected
+              setSelectedTeams(allIndices);
+            }}
             disabled={availableTeams.length === 0}
-            className={`font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md ${
+            className={`bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 text-sm flex items-center shadow-md ${
               availableTeams.length === 0
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
             }`}
           >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Select All
@@ -56,53 +72,78 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
         </div>
         
         <div className="flex-1 overflow-y-auto mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availableTeams.map((team, index) => (
-              <div 
-                key={team.name} 
-                className={`bg-white/80 backdrop-blur-sm rounded-lg p-4 border-2 transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg ${
-                  selectedTeams.has(index) 
-                    ? 'border-blue-500 bg-blue-50/80' 
-                    : 'border-blue-200 hover:border-blue-300'
-                }`}
-                onClick={() => onToggleTeamSelection(index)}
-              >
-                <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center break-words">
-                  {team.name}
-                </h3>
-                <div className="space-y-2">
-                  {team.players.map((player, playerIndex) => (
-                    <div key={playerIndex} className="flex items-center justify-between p-2 bg-blue-50/60 rounded border border-blue-200">
-                      <span className="text-blue-800 font-medium text-sm">{player}</span>
-                      <span className="text-xs text-blue-700 bg-blue-200 px-2 py-1 rounded">
-                        P{playerIndex + 1}
-                      </span>
+          {availableTeams.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">🏐</div>
+              <p className="text-body-small">No teams available to add</p>
+              <p className="text-caption mt-2">All teams are either on courts or in the queue</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-4">
+              {availableTeams.map((team, index) => {
+                const isSelected = selectedTeams.has(index);
+                console.log(`Team ${team.name} (index ${index}): selected = ${isSelected}`);
+                return (
+                  <div 
+                    key={team.name} 
+                    className={`bg-white rounded-2xl p-6 transition-all duration-200 cursor-pointer shadow-medium ${
+                      isSelected
+                        ? 'border-4 border-primary-700 bg-primary-100 shadow-large ring-4 ring-primary-300' 
+                        : 'border-2 border-gray-300 hover:border-primary-300'
+                    }`}
+                    onClick={() => onToggleTeamSelection(index)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select ${team.name}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onToggleTeamSelection(index);
+                      }
+                    }}
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-heading-4 text-gray-900 text-center break-words flex-1">
+                        {team.name}
+                      </h3>
                     </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                    <div className="space-y-4">
+                      {team.players.map((player, playerIndex) => (
+                        <div key={playerIndex} className="flex items-center justify-between p-4 bg-gray-100/80 rounded-xl border border-gray-300">
+                          <span className="text-gray-800 font-medium text-sm flex-1 mr-4 min-w-0">
+                            <span className="block truncate" title={player}>{player}</span>
+                          </span>
+                          <span className="text-xs text-gray-700 bg-gray-300 px-3 py-1 rounded-lg font-medium flex-shrink-0">
+                            P{playerIndex + 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-sm text-blue-700 font-medium">
+          <div className="text-body-small text-primary-700 font-medium">
             {selectedTeams.size} team{selectedTeams.size !== 1 ? 's' : ''} selected
           </div>
-          <div className="flex space-x-3">
+          <div className="flex space-x-4">
             <button
               onClick={onCancel}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition-colors duration-200 shadow-md"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors duration-200 shadow-md"
             >
               Cancel
             </button>
             <button
               onClick={onAddSelectedTeams}
               disabled={selectedTeams.size === 0}
-              className={`py-2 px-6 rounded-lg font-medium transition-colors duration-200 shadow-md ${
+              className={`bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 shadow-md ${
                 selectedTeams.size === 0
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  ? 'opacity-50 cursor-not-allowed'
+                  : ''
               }`}
             >
               Add {selectedTeams.size} Team{selectedTeams.size !== 1 ? 's' : ''} to Queue

@@ -354,10 +354,9 @@ export const useVolleyballState = () => {
       return !inQueue && !onCourt;
     });
     
-    // Create indices for the available teams (0, 1, 2, etc.)
-    const availableTeamIndices = availableTeams.map((_, index) => index);
-    
-    setSelectedTeams(new Set(availableTeamIndices));
+    // Select all available teams by creating a set with all indices from 0 to availableTeams.length - 1
+    const allIndices = new Set(Array.from({ length: availableTeams.length }, (_, i) => i));
+    setSelectedTeams(allIndices);
   };
 
   const handleRemoveFromQueue = (queueIndex: number) => {

@@ -21,7 +21,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
         </h2>
         <button
           onClick={onOpenModal}
-          className="btn-primary text-sm flex items-center shadow-md"
+          className="bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 text-sm flex items-center shadow-md"
           aria-label="Add new team"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -44,7 +44,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
               <p className="text-body-small mb-6">Get started by adding your first team!</p>
               <button
                 onClick={onOpenModal}
-                className="btn-primary"
+                className="bg-secondary-600 hover:bg-secondary-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 flex items-center shadow-md"
                 aria-label="Add your first team"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -54,7 +54,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 px-2">
               {teams.map((team, index) => (
                 <div 
                   key={team.name} 
