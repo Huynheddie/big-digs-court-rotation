@@ -30,4 +30,14 @@ export interface GameScoreData {
   team2Score: string;
 }
 
+export interface GameEvent {
+  id: string;
+  timestamp: Date;
+  type: 'court_cleared' | 'teams_added' | 'game_reported' | 'team_deleted' | 'team_added';
+  description: string;
+  courtNumber?: string;
+  teams?: Team[];
+  score?: string;
+}
+
 export type NetColor = 'red' | 'blue' | 'green' | 'yellow'; 

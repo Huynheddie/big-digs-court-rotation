@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Court, Team, FormData, GameScoreData } from '../types';
+import type { Court, Team, FormData, GameScoreData, GameEvent } from '../types';
 import { initialTeams, initialRegisteredTeams, initialQueue } from '../data/initialData';
 import { generateRandomString } from '../utils/dataUtils';
 
@@ -8,6 +8,7 @@ export const useVolleyballState = () => {
   const [teams, setTeams] = useState<Court[]>(initialTeams);
   const [registeredTeams, setRegisteredTeams] = useState<Team[]>(initialRegisteredTeams);
   const [teamQueue, setTeamQueue] = useState<Team[]>(initialQueue);
+  const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +36,16 @@ export const useVolleyballState = () => {
   const [deletingTeamIndex, setDeletingTeamIndex] = useState<number | null>(null);
   const [netColorDropdownOpen, setNetColorDropdownOpen] = useState<number | null>(null);
 
+  // Helper function to add game events
+  const addGameEvent = (event: Omit<GameEvent, 'id' | 'timestamp'>) => {
+    const newEvent: GameEvent = {
+      ...event,
+      id: generateRandomString('event'),
+      timestamp: new Date()
+    };
+    setGameEvents(prev => [newEvent, ...prev]); // Add to beginning for newest first
+  };
+
   // Form handlers
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,6 +65,13 @@ export const useVolleyballState = () => {
       players: [formData.player1, formData.player2, formData.player3, formData.player4]
     };
     setRegisteredTeams(prev => [...prev, newTeam]);
+    
+    // Add game event
+    addGameEvent({
+      type: 'team_added',
+      description: `New team "${formData.teamName}" was registered with ${formData.player1}, ${formData.player2}, ${formData.player3}, ${formData.player4}`
+    });
+    
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
     setIsModalOpen(false);
   };
@@ -109,11 +127,24 @@ export const useVolleyballState = () => {
   const handleReportGameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (reportingCourtIndex !== null) {
+      const court = teams[reportingCourtIndex];
+      const score = `${gameScoreData.team1Score}-${gameScoreData.team2Score}`;
+      
       setTeams(prev => prev.map((court, index) => 
         index === reportingCourtIndex 
-          ? { ...court, score: `${gameScoreData.team1Score}-${gameScoreData.team2Score}` }
+          ? { ...court, score: score }
           : court
       ));
+      
+      // Add game event
+      addGameEvent({
+        type: 'game_reported',
+        description: `Game reported on Court ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`,
+        courtNumber: court.court,
+        teams: [court.team1, court.team2],
+        score: score
+      });
+      
       setGameScoreData({ team1Score: '', team2Score: '' });
       setReportingCourtIndex(null);
       setIsReportGameModalOpen(false);
@@ -168,17 +199,27 @@ export const useVolleyballState = () => {
   };
 
   const handleClearTeams = (courtIndex: number) => {
+    const court = teams[courtIndex];
     setTeams(prev => prev.map((court, index) => 
       index === courtIndex 
         ? { ...court, team1: { name: "No Team", players: ["", "", "", ""] }, team2: { name: "No Team", players: ["", "", "", ""] } }
         : court
     ));
+    
+    // Add game event
+    addGameEvent({
+      type: 'court_cleared',
+      description: `Court ${court.court} was cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
+      courtNumber: court.court,
+      teams: [court.team1, court.team2]
+    });
   };
 
   const handleFillFromQueue = (courtIndex: number) => {
     if (teamQueue.length >= 2) {
       const firstTeam = teamQueue[0];
       const secondTeam = teamQueue[1];
+      const court = teams[courtIndex];
       
       setTeams(prev => prev.map((court, index) => 
         index === courtIndex 
@@ -187,6 +228,14 @@ export const useVolleyballState = () => {
       ));
       
       setTeamQueue(prev => prev.slice(2));
+      
+      // Add game event
+      addGameEvent({
+        type: 'teams_added',
+        description: `Teams added to Court ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
+        courtNumber: court.court,
+        teams: [firstTeam, secondTeam]
+      });
     }
   };
 
@@ -205,6 +254,12 @@ export const useVolleyballState = () => {
         : court.team2
     })));
     
+    // Add game event
+    addGameEvent({
+      type: 'team_deleted',
+      description: `Team "${teamToDelete.name}" was deleted from the system`
+    });
+    
     setDeletingTeamIndex(null);
   };
 
@@ -213,6 +268,7 @@ export const useVolleyballState = () => {
     teams,
     registeredTeams,
     teamQueue,
+    gameEvents,
     isModalOpen,
     isEditModalOpen,
     isReportGameModalOpen,
@@ -229,6 +285,7 @@ export const useVolleyballState = () => {
     setTeams,
     setRegisteredTeams,
     setTeamQueue,
+    setGameEvents,
     setIsModalOpen,
     setIsEditModalOpen,
     setIsReportGameModalOpen,
