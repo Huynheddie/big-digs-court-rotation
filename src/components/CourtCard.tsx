@@ -32,7 +32,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({
 }) => {
   return (
     <div 
-      className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer hover:scale-105 ${getCourtBackgroundClass(court.netColor)}`}
+      className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer hover:scale-105 min-w-[400px] ${getCourtBackgroundClass(court.netColor)}`}
       onClick={() => onOpenCourtDetails(courtIndex)}
     >
       {/* Court Header */}
