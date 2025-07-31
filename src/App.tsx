@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useVolleyballState } from './hooks/useVolleyballState';
 import { CourtCard } from './components/CourtCard';
+import { Accordion } from './components/Accordion';
 import { AddTeamModal } from './components/modals/AddTeamModal';
-import { getAvailableTeams } from './utils/dataUtils';
+import { EditTeamModal } from './components/modals/EditTeamModal';
+import { AddToQueueModal } from './components/modals/AddToQueueModal';
+import { DeleteTeamModal } from './components/modals/DeleteTeamModal';
+import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 import { getNetColorBorderClass, getNetColorFocusClass, getCourtTextClass } from './utils/colorUtils';
 
 function App() {
@@ -22,6 +26,22 @@ function App() {
     reportingCourtIndex,
     deletingTeamIndex,
     netColorDropdownOpen,
+
+    // Setters
+    setTeams,
+    setRegisteredTeams,
+    setTeamQueue,
+    setIsModalOpen,
+    setIsEditModalOpen,
+    setIsReportGameModalOpen,
+    setIsAddToQueueModalOpen,
+    setFormData,
+    setGameScoreData,
+    setSelectedTeams,
+    setEditingTeamIndex,
+    setReportingCourtIndex,
+    setDeletingTeamIndex,
+    setNetColorDropdownOpen,
 
     // Handlers
     handleInputChange,
@@ -43,14 +63,26 @@ function App() {
     handleDeleteTeam
   } = useVolleyballState();
 
+  // Accordion state
+  const [isQueueOpen, setIsQueueOpen] = useState(true);
+  const [isTeamsOpen, setIsTeamsOpen] = useState(true);
+
   const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
+  const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
+  const isTeamOnCourtForDelete = teamToDelete ? isTeamOnCourt(teamToDelete.name, teams) : false;
+
+  const handleDeleteConfirm = () => {
+    if (deletingTeamIndex !== null) {
+      handleDeleteTeam(deletingTeamIndex);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-            🏐 Big Digs Court Rotation
+            🏐 Big Digs Court Rotation 🏐
           </h1>
         </header>
 
@@ -74,14 +106,16 @@ function App() {
           ))}
         </div>
 
-        {/* Team Queue Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-6 mb-8 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-blue-900">
-              Queue ({teamQueue.length})
-            </h2>
+        {/* Team Queue Accordion */}
+        <Accordion
+          title={`Queue (${teamQueue.length})`}
+          isOpen={isQueueOpen}
+          onToggle={setIsQueueOpen}
+          className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 mb-8"
+        >
+          <div className="flex justify-end mb-6 pt-4">
             <button
-              onClick={() => {/* TODO: Implement */}}
+              onClick={() => setIsAddToQueueModalOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,14 +153,16 @@ function App() {
               ))}
             </div>
           </div>
-        </div>
+        </Accordion>
 
-        {/* All Teams List Card */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 rounded-lg p-6 mb-8 shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-emerald-900">
-              All Registered Teams ({registeredTeams.length})
-            </h2>
+        {/* Teams Accordion */}
+        <Accordion
+          title={`Teams (${registeredTeams.length})`}
+          isOpen={isTeamsOpen}
+          onToggle={setIsTeamsOpen}
+          className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 mb-8"
+        >
+          <div className="flex justify-end mb-6 pt-4">
             <button
               onClick={handleOpenModal}
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md"
@@ -153,7 +189,7 @@ function App() {
                       </svg>
                     </button>
                     <button
-                      onClick={() => {/* TODO: Implement */}}
+                      onClick={() => setDeletingTeamIndex(index)}
                       className="text-gray-500 hover:text-gray-700 transition-colors text-2xl font-bold leading-none"
                       title="Delete team"
                     >
@@ -177,7 +213,7 @@ function App() {
               ))}
             </div>
           </div>
-        </div>
+        </Accordion>
 
         {/* Modals */}
         <AddTeamModal
@@ -188,7 +224,30 @@ function App() {
           onCancel={handleCancel}
         />
 
-        {/* TODO: Add other modals */}
+        <EditTeamModal
+          isOpen={isEditModalOpen}
+          formData={formData}
+          onInputChange={handleInputChange}
+          onSubmit={handleEditSubmit}
+          onCancel={handleCancel}
+        />
+
+        <AddToQueueModal
+          isOpen={isAddToQueueModalOpen}
+          availableTeams={availableTeams}
+          selectedTeams={selectedTeams}
+          onToggleTeamSelection={handleToggleTeamSelection}
+          onAddSelectedTeams={handleAddSelectedTeamsToQueue}
+          onCancel={handleCancel}
+        />
+
+        <DeleteTeamModal
+          isOpen={deletingTeamIndex !== null}
+          teamToDelete={teamToDelete}
+          isOnCourt={isTeamOnCourtForDelete}
+          onDelete={handleDeleteConfirm}
+          onCancel={() => setDeletingTeamIndex(null)}
+        />
       </div>
     </div>
   );

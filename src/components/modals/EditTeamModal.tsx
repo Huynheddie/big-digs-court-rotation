@@ -2,7 +2,7 @@ import React from 'react';
 import type { FormData } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
-interface AddTeamModalProps {
+interface EditTeamModalProps {
   isOpen: boolean;
   formData: FormData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -10,7 +10,7 @@ interface AddTeamModalProps {
   onCancel: () => void;
 }
 
-export const AddTeamModal: React.FC<AddTeamModalProps> = ({
+export const EditTeamModal: React.FC<EditTeamModalProps> = ({
   isOpen,
   formData,
   onInputChange,
@@ -25,18 +25,18 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
         <h2 className="text-2xl font-bold text-emerald-900 mb-6 text-center">
-          Add New Team
+          Edit Team
         </h2>
         
         <form onSubmit={onSubmit} className="space-y-4">
           {/* Team Name */}
           <div>
-            <label htmlFor="teamName" className="block text-sm font-medium text-emerald-800 mb-2">
+            <label htmlFor="editTeamName" className="block text-sm font-medium text-emerald-800 mb-2">
               Team Name
             </label>
             <input
               type="text"
-              id="teamName"
+              id="editTeamName"
               name="teamName"
               value={formData.teamName}
               onChange={onInputChange}
@@ -49,12 +49,12 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
           {/* Player Fields */}
           {[1, 2, 3, 4].map((playerNum) => (
             <div key={playerNum}>
-              <label htmlFor={`player${playerNum}`} className="block text-sm font-medium text-emerald-800 mb-2">
+              <label htmlFor={`editPlayer${playerNum}`} className="block text-sm font-medium text-emerald-800 mb-2">
                 Player #{playerNum}
               </label>
               <input
                 type="text"
-                id={`player${playerNum}`}
+                id={`editPlayer${playerNum}`}
                 name={`player${playerNum}`}
                 value={formData[`player${playerNum}` as keyof FormData]}
                 onChange={onInputChange}
@@ -78,7 +78,7 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               type="submit"
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 shadow-md"
             >
-              Add
+              Save Changes
             </button>
           </div>
         </form>
