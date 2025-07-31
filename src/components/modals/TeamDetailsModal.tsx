@@ -106,103 +106,110 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <div 
-        className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-lg p-6 w-full max-w-2xl mx-4 shadow-xl max-h-[90vh] overflow-y-auto"
+        className="card p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-orange-900">
+          <h2 id="modal-title" className="text-heading-2 text-gray-900">
             {isEditing ? 'Edit Team' : 'Team Details'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
+            className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="Close modal"
           >
             ×
           </button>
         </div>
 
         {/* Team Information Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-orange-700 mb-4">Team Information</h3>
+        <div className="mb-8">
+          <h3 className="text-heading-4 text-gray-900 mb-6">Team Information</h3>
           
           {isEditing ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-orange-700 mb-2">
+                <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-2">
                   Team Name
                 </label>
                 <input
+                  id="teamName"
                   type="text"
                   name="teamName"
                   value={editFormData.teamName}
                   onChange={handleInputChange}
                   maxLength={50}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
-                    editFormData.teamName && !isValidTeamName
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-orange-300'
+                  className={`input-primary ${
+                    editFormData.teamName && !isValidTeamName ? 'input-error' : ''
                   }`}
                   placeholder="Enter team name"
+                  aria-describedby={editFormData.teamName && !isValidTeamName ? 'teamName-error' : undefined}
                 />
-                <div className="flex justify-between items-center mt-1">
+                <div className="flex justify-between items-center mt-2">
                   {editFormData.teamName && !isValidTeamName && (
-                    <p className="text-red-500 text-xs">Team name is required and must be 50 characters or less</p>
+                    <p id="teamName-error" className="text-error-600 text-sm">
+                      Team name is required and must be 50 characters or less
+                    </p>
                   )}
-                  <p className="text-gray-500 text-xs">{editFormData.teamName.length}/50</p>
+                  <p className="text-caption text-gray-500">{editFormData.teamName.length}/50</p>
                 </div>
               </div>
 
               {[1, 2, 3, 4].map((num) => (
                 <div key={num}>
-                  <label className="block text-sm font-medium text-orange-700 mb-2">
+                  <label htmlFor={`player${num}`} className="block text-sm font-medium text-gray-700 mb-2">
                     Player {num}
                   </label>
                   <input
+                    id={`player${num}`}
                     type="text"
                     name={`player${num}`}
                     value={editFormData[`player${num}` as keyof typeof editFormData]}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="input-primary"
                     placeholder={`Enter player ${num} name`}
                   />
                 </div>
               ))}
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex space-x-4 pt-4">
                 <button
                   onClick={handleCancelEdit}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  className="btn-secondary flex-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEdit}
                   disabled={!isValidTeamName}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Save Changes
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-medium text-orange-700 mb-2">Team Name</h4>
-                <p className="text-lg font-semibold text-orange-900 break-words">{team.name}</p>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Team Name</h4>
+                <p className="text-body-large font-semibold text-gray-900 break-words">{team.name}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-orange-700 mb-2">Players</h4>
-                <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Players</h4>
+                <div className="space-y-3">
                   {team.players.map((player, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-orange-50/60 rounded border border-orange-200">
-                      <span className="text-orange-800 font-medium">{player || `Player ${index + 1} (Not set)`}</span>
-                      <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded">
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
+                      <span className="text-body font-medium text-gray-800">{player || `Player ${index + 1} (Not set)`}</span>
+                      <span className="text-xs text-gray-600 bg-gray-200 px-3 py-1 rounded-lg font-medium">
                         P{index + 1}
                       </span>
                     </div>
@@ -210,16 +217,16 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              <div className="flex space-x-4 pt-4">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  className="btn-primary flex-1"
                 >
                   Edit Team
                 </button>
                 <button
                   onClick={() => teamIndex !== null && onDelete(teamIndex)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                  className="btn-error flex-1"
                 >
                   Delete Team
                 </button>
@@ -229,62 +236,62 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
         </div>
 
         {/* Win-Loss Record Section */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-orange-700 mb-4">Record</h3>
+        <div className="mb-8">
+          <h3 className="text-heading-4 text-gray-900 mb-6">Record</h3>
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-green-100 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-800">{wins}</div>
-              <div className="text-sm text-green-600">Wins</div>
+            <div className="bg-success-50 rounded-xl p-4 text-center border border-success-200">
+              <div className="text-3xl font-bold text-success-800">{wins}</div>
+              <div className="text-sm text-success-600 font-medium">Wins</div>
             </div>
-            <div className="bg-red-100 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-red-800">{losses}</div>
-              <div className="text-sm text-red-600">Losses</div>
+            <div className="bg-error-50 rounded-xl p-4 text-center border border-error-200">
+              <div className="text-3xl font-bold text-error-800">{losses}</div>
+              <div className="text-sm text-error-600 font-medium">Losses</div>
             </div>
-            <div className="bg-blue-100 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-800">{winRate}%</div>
-              <div className="text-sm text-blue-600">Win Rate</div>
+            <div className="bg-primary-50 rounded-xl p-4 text-center border border-primary-200">
+              <div className="text-3xl font-bold text-primary-800">{winRate}%</div>
+              <div className="text-sm text-primary-600 font-medium">Win Rate</div>
             </div>
           </div>
         </div>
 
         {/* Game History Section */}
         <div>
-          <h3 className="text-lg font-semibold text-orange-700 mb-4">Game History</h3>
+          <h3 className="text-heading-4 text-gray-900 mb-6">Game History</h3>
           {teamGameEvents.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <div className="text-3xl mb-2">📝</div>
-              <p className="text-sm">No games played yet</p>
+            <div className="text-center py-12 text-gray-500">
+              <div className="text-4xl mb-4">📝</div>
+              <p className="text-body-small">No games played yet</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-64 overflow-y-auto">
+            <div className="space-y-4 max-h-64 overflow-y-auto">
               {getGameHistory().map((game) => (
                 <div
                   key={game.id}
-                  className={`rounded-lg p-3 border ${
+                  className={`rounded-xl p-4 border ${
                     game.isWinner 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-red-50 border-red-200'
+                      ? 'bg-success-50 border-success-200' 
+                      : 'bg-error-50 border-error-200'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-lg ${game.isWinner ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className="flex items-center space-x-3">
+                      <span className={`text-xl ${game.isWinner ? 'text-success-600' : 'text-error-600'}`} role="img" aria-hidden="true">
                         {game.isWinner ? '🏆' : '❌'}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-body font-medium text-gray-800">
                           vs {game.opponent?.name || 'Unknown Team'}
                         </p>
-                                                 <p className="text-xs text-gray-600">
-                           {game.courtNumber} • {new Date(game.timestamp).toLocaleDateString()} at {new Date(game.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                         </p>
+                        <p className="text-caption text-gray-600">
+                          {game.courtNumber} • {new Date(game.timestamp).toLocaleDateString()} at {new Date(game.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-lg font-bold ${game.isWinner ? 'text-green-800' : 'text-red-800'}`}>
+                      <p className={`text-xl font-bold ${game.isWinner ? 'text-success-800' : 'text-error-800'}`}>
                         {game.teamScore} - {game.opponentScore}
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p className="text-caption text-gray-600 font-medium">
                         {game.isWinner ? 'WIN' : 'LOSS'}
                       </p>
                     </div>

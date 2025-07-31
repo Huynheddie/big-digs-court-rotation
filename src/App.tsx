@@ -5,7 +5,7 @@ import { Accordion } from './components/Accordion';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { TeamsCard } from './components/TeamsCard';
-import { RotationSystemDropdown } from './components/RotationSystemDropdown';
+import { ToastProvider, useToast } from './components/Toast';
 import { AddTeamModal } from './components/modals/AddTeamModal';
 import { EditTeamModal } from './components/modals/EditTeamModal';
 import { AddToQueueModal } from './components/modals/AddToQueueModal';
@@ -15,7 +15,8 @@ import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
 import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 
-function App() {
+function AppContent() {
+  const { showToast } = useToast();
   const {
     // State
     teams,
@@ -70,9 +71,6 @@ function App() {
   // Page state
   const [currentPage, setCurrentPage] = useState<'courts' | 'teams'>('courts');
 
-  // Rotation system state
-  const [currentRotationSystem, setCurrentRotationSystem] = useState('3-court-competitive');
-
   // Accordion state
   const [isQueueOpen, setIsQueueOpen] = useState(true);
 
@@ -80,24 +78,131 @@ function App() {
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
   const isTeamOnCourtForDelete = teamToDelete ? isTeamOnCourt(teamToDelete.name, teams) : false;
 
-  const handleDeleteConfirm = () => {
-    if (deletingTeamIndex !== null) {
-      handleDeleteTeam(deletingTeamIndex);
-      setDeletingTeamIndex(null);
+  // Enhanced handlers with toast notifications
+  const handleSubmitWithToast = (e: React.FormEvent) => {
+    handleSubmit(e);
+    showToast({
+      type: 'success',
+      title: 'Team Added!',
+      message: `Successfully added "${formData.teamName}" to the system.`
+    });
+  };
+
+  const handleEditSubmitWithToast = (e: React.FormEvent) => {
+    handleEditSubmit(e);
+    showToast({
+      type: 'success',
+      title: 'Team Updated!',
+      message: `Successfully updated "${formData.teamName}".`
+    });
+  };
+
+  const handleReportGameSubmitWithToast = (e: React.FormEvent) => {
+    const court = reportingCourtIndex !== null ? teams[reportingCourtIndex] : null;
+    handleReportGameSubmit(e);
+    if (court) {
+      showToast({
+        type: 'success',
+        title: 'Game Reported!',
+        message: `Game between ${court.team1.name} and ${court.team2.name} has been recorded.`
+      });
     }
   };
 
+  const handleAddSelectedTeamsToQueueWithToast = () => {
+    const selectedCount = selectedTeams.size;
+    handleAddSelectedTeamsToQueue();
+    if (selectedCount > 0) {
+      showToast({
+        type: 'success',
+        title: 'Teams Added to Queue!',
+        message: `${selectedCount} team${selectedCount > 1 ? 's' : ''} added to the queue.`
+      });
+    }
+  };
+
+  const handleRemoveFromQueueWithToast = (index: number) => {
+    const teamName = teamQueue[index]?.name || 'Team';
+    handleRemoveFromQueue(index);
+    showToast({
+      type: 'info',
+      title: 'Team Removed',
+      message: `"${teamName}" has been removed from the queue.`
+    });
+  };
+
+  const handleClearTeamsWithToast = (courtIndex: number) => {
+    const court = teams[courtIndex];
+    const teamNames = [court.team1.name, court.team2.name].filter(name => name !== 'No Team');
+    handleClearTeams(courtIndex);
+    if (teamNames.length > 0) {
+      showToast({
+        type: 'warning',
+        title: 'Teams Cleared',
+        message: `Cleared teams from ${court.court}.`
+      });
+    }
+  };
+
+  const handleFillFromQueueWithToast = (courtIndex: number) => {
+    const court = teams[courtIndex];
+    const teamsAdded = teamQueue.length >= 2 ? 2 : teamQueue.length;
+    handleFillFromQueue(courtIndex);
+    showToast({
+      type: 'success',
+      title: 'Court Filled!',
+      message: `Added ${teamsAdded} team${teamsAdded > 1 ? 's' : ''} to ${court.court}.`
+    });
+  };
+
+  const handleDeleteConfirmWithToast = () => {
+    if (deletingTeamIndex !== null) {
+      const teamName = registeredTeams[deletingTeamIndex]?.name || 'Team';
+      handleDeleteTeam(deletingTeamIndex);
+      setDeletingTeamIndex(null);
+      showToast({
+        type: 'error',
+        title: 'Team Deleted',
+        message: `"${teamName}" has been permanently deleted.`
+      });
+    }
+  };
+
+  const handleDeleteTeamFromDetailsWithToast = (teamIndex: number) => {
+    const teamName = registeredTeams[teamIndex]?.name || 'Team';
+    handleDeleteTeamFromDetails(teamIndex);
+    showToast({
+      type: 'error',
+      title: 'Team Deleted',
+      message: `"${teamName}" has been permanently deleted.`
+    });
+  };
+
+  const handleResetToEventWithToast = (eventId: string) => {
+    resetToEvent(eventId);
+    showToast({
+      type: 'info',
+      title: 'State Restored',
+      message: 'Game state has been restored to the selected point in time.'
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-3">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
+      {/* Skip to main content link for accessibility */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
           backgroundImage: `
-            radial-gradient(circle at 25% 25%, rgba(0,0,0,0.05) 1px, transparent 1px),
-            radial-gradient(circle at 75% 75%, rgba(0,0,0,0.05) 1px, transparent 1px)
+            radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, rgba(234, 88, 12, 0.1) 1px, transparent 1px)
           `,
-          backgroundSize: '40px 40px, 40px 40px',
-          backgroundPosition: '0 0, 20px 20px'
+          backgroundSize: '60px 60px, 60px 60px',
+          backgroundPosition: '0 0, 30px 30px'
         }}></div>
       </div>
 
@@ -107,74 +212,73 @@ function App() {
       {/* Sidebar */}
       <Sidebar 
         gameEvents={gameEvents}
-        onResetToEvent={resetToEvent}
+        onResetToEvent={handleResetToEventWithToast}
         currentState={{ teams, registeredTeams, teamQueue }}
       />
       
-            {/* Main Content */}
-      <div className={`transition-all duration-300 relative z-10 ml-16 pt-16`}>
-        <div className="container mx-auto px-4 py-8">
+      {/* Main Content */}
+      <main 
+        id="main-content"
+        className={`transition-all duration-300 relative z-10 ml-16 pt-16`}
+        role="main"
+      >
+        <div className="container-responsive py-8">
 
           {currentPage === 'courts' ? (
             <>
-              {/* Header with Rotation System Dropdown */}
-              <div className="flex justify-between items-center mb-8">
-                <div></div> {/* Empty div for spacing */}
-                <RotationSystemDropdown
-                  currentSystem={currentRotationSystem}
-                  onSystemChange={setCurrentRotationSystem}
-                />
-              </div>
-
-              {/* Court Cards - Triangular Layout */}
+              {/* Court Cards - Enhanced Layout */}
               <div className="mb-8">
                 {/* Top Row - Challenger Courts */}
-                <div className="flex justify-center gap-8 mb-8">
+                <div className="flex flex-col lg:flex-row justify-center gap-6 lg:gap-8 mb-8">
                   {teams.slice(0, 2).map((court, courtIndex) => (
-                    <CourtCard
-                      key={court.court}
-                      court={court}
-                      courtIndex={courtIndex}
-                      onReportGame={handleReportGame}
-                      onClearTeams={handleClearTeams}
-                      onFillFromQueue={handleFillFromQueue}
-                      onOpenCourtDetails={handleOpenCourtDetails}
-                      teamQueueLength={teamQueue.length}
-                    />
+                    <div key={court.court} className="flex-1 max-w-md mx-auto lg:max-w-none">
+                      <CourtCard
+                        court={court}
+                        courtIndex={courtIndex}
+                        onReportGame={handleReportGame}
+                        onClearTeams={handleClearTeamsWithToast}
+                        onFillFromQueue={handleFillFromQueueWithToast}
+                        onOpenCourtDetails={handleOpenCourtDetails}
+                        teamQueueLength={teamQueue.length}
+                      />
+                    </div>
                   ))}
                 </div>
                 
                 {/* Bottom Row - Kings Court */}
                 <div className="flex justify-center">
-                  {teams.slice(2, 3).map((court, courtIndex) => (
-                    <CourtCard
-                      key={court.court}
-                      court={court}
-                      courtIndex={courtIndex + 2} // Adjust index for Kings Court
-                      onReportGame={handleReportGame}
-                      onClearTeams={handleClearTeams}
-                      onFillFromQueue={handleFillFromQueue}
-                      onOpenCourtDetails={handleOpenCourtDetails}
-                      teamQueueLength={teamQueue.length}
-                    />
-                  ))}
+                  <div className="w-full max-w-md mx-auto lg:max-w-md">
+                    {teams.slice(2, 3).map((court, courtIndex) => (
+                      <CourtCard
+                        key={court.court}
+                        court={court}
+                        courtIndex={courtIndex + 2} // Adjust index for Kings Court
+                        onReportGame={handleReportGame}
+                        onClearTeams={handleClearTeamsWithToast}
+                        onFillFromQueue={handleFillFromQueueWithToast}
+                        onOpenCourtDetails={handleOpenCourtDetails}
+                        teamQueueLength={teamQueue.length}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Team Queue Accordion */}
+              {/* Team Queue Accordion - Enhanced */}
               <Accordion
                 title={`Queue (${teamQueue.length})`}
                 isOpen={isQueueOpen}
                 onToggle={setIsQueueOpen}
-                className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 mb-8 shadow-lg"
-                titleClassName="text-blue-900"
+                className="card-glass border-primary-200 mb-8"
+                titleClassName="text-primary-900"
               >
                 <div className="flex justify-end mb-6 pt-4">
                   <button
                     onClick={() => setIsAddToQueueModalOpen(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md"
+                    className="btn-primary text-sm flex items-center shadow-md"
+                    aria-label="Add team to queue"
                   >
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     Add Team
@@ -182,32 +286,41 @@ function App() {
                 </div>
                 
                 <div className="max-h-96 overflow-y-auto">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teamQueue.map((team, index) => (
-                      <div key={`${team.name}-${index}`} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-blue-300 shadow-md hover:shadow-lg transition-shadow duration-200 relative">
-                        <button
-                          onClick={() => handleRemoveFromQueue(index)}
-                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors text-2xl font-bold leading-none"
-                          title="Remove from queue"
-                        >
-                          ×
-                        </button>
-                        <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center pr-8 break-words">
-                          {team.name}
-                        </h3>
-                        <div className="space-y-2">
-                          {team.players.map((player, playerIndex) => (
-                            <div key={playerIndex} className="flex items-center justify-between p-2 bg-blue-50/60 rounded border border-blue-200">
-                              <span className="text-blue-800 font-medium text-sm">{player}</span>
-                              <span className="text-xs text-blue-700 bg-blue-200 px-2 py-1 rounded">
-                                P{playerIndex + 1}
-                              </span>
-                            </div>
-                          ))}
+                  {teamQueue.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <div className="text-4xl mb-4">🏐</div>
+                      <p className="text-body-small">No teams in queue</p>
+                      <p className="text-caption mt-2">Add teams to get started!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {teamQueue.map((team, index) => (
+                        <div key={`${team.name}-${index}`} className="card-glass border-primary-300 relative group">
+                          <button
+                            onClick={() => handleRemoveFromQueueWithToast(index)}
+                            className="absolute top-3 right-3 text-gray-500 hover:text-error-600 transition-colors text-xl font-bold leading-none opacity-0 group-hover:opacity-100"
+                            title="Remove from queue"
+                            aria-label={`Remove ${team.name} from queue`}
+                          >
+                            ×
+                          </button>
+                          <h3 className="text-heading-4 text-primary-900 mb-4 text-center pr-8 break-words">
+                            {team.name}
+                          </h3>
+                          <div className="space-y-2">
+                            {team.players.map((player, playerIndex) => (
+                              <div key={playerIndex} className="flex items-center justify-between p-3 bg-primary-50/60 rounded-xl border border-primary-200">
+                                <span className="text-primary-800 font-medium text-sm">{player}</span>
+                                <span className="text-xs text-primary-700 bg-primary-200 px-2 py-1 rounded-lg">
+                                  P{playerIndex + 1}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </Accordion>
             </>
@@ -220,14 +333,14 @@ function App() {
             />
           )}
         </div>
-      </div>
+      </main>
 
       {/* Modals */}
       <AddTeamModal
         isOpen={isModalOpen}
         formData={formData}
         onInputChange={handleInputChange}
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmitWithToast}
         onCancel={handleCancel}
       />
 
@@ -235,7 +348,7 @@ function App() {
         isOpen={isEditModalOpen}
         formData={formData}
         onInputChange={handleInputChange}
-        onSubmit={handleEditSubmit}
+        onSubmit={handleEditSubmitWithToast}
         onCancel={handleCancel}
       />
 
@@ -245,7 +358,7 @@ function App() {
         selectedTeams={selectedTeams}
         onToggleTeamSelection={handleToggleTeamSelection}
         onSelectAllTeams={handleSelectAllTeams}
-        onAddSelectedTeams={handleAddSelectedTeamsToQueue}
+        onAddSelectedTeams={handleAddSelectedTeamsToQueueWithToast}
         onCancel={handleCancel}
       />
 
@@ -253,7 +366,7 @@ function App() {
         isOpen={deletingTeamIndex !== null}
         teamToDelete={teamToDelete}
         isOnCourt={isTeamOnCourtForDelete}
-        onDelete={handleDeleteConfirm}
+        onDelete={handleDeleteConfirmWithToast}
         onCancel={() => setDeletingTeamIndex(null)}
       />
 
@@ -261,7 +374,7 @@ function App() {
         isOpen={isReportGameModalOpen}
         gameScoreData={gameScoreData}
         onScoreInputChange={handleScoreInputChange}
-        onSubmit={handleReportGameSubmit}
+        onSubmit={handleReportGameSubmitWithToast}
         onCancel={handleCancel}
         team1Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team1.name : ''}
         team2Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team2.name : ''}
@@ -273,7 +386,7 @@ function App() {
         gameEvents={gameEvents}
         onClose={handleCloseTeamDetails}
         onEdit={handleEditTeamFromDetails}
-        onDelete={handleDeleteTeamFromDetails}
+        onDelete={handleDeleteTeamFromDetailsWithToast}
         teamIndex={selectedTeamForDetails}
       />
 
@@ -288,6 +401,14 @@ function App() {
         onTeamChange={handleTeamChange}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
 
