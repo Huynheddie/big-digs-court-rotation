@@ -16,30 +16,27 @@ import {
 interface CourtCardProps {
   court: Court;
   courtIndex: number;
-  netColorDropdownOpen: number | null;
-  onNetColorChange: (courtIndex: number, newColor: string) => void;
-  onNetColorDropdownToggle: (courtIndex: number) => void;
   onReportGame: (courtIndex: number) => void;
   onClearTeams: (courtIndex: number) => void;
   onFillFromQueue: (courtIndex: number) => void;
+  onOpenCourtDetails: (courtIndex: number) => void;
   teamQueueLength: number;
-  availableNetColors: string[];
 }
 
 export const CourtCard: React.FC<CourtCardProps> = ({
   court,
   courtIndex,
-  netColorDropdownOpen,
-  onNetColorChange,
-  onNetColorDropdownToggle,
   onReportGame,
   onClearTeams,
   onFillFromQueue,
-  teamQueueLength,
-  availableNetColors
+  onOpenCourtDetails,
+  teamQueueLength
 }) => {
   return (
-    <div className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${getCourtBackgroundClass(court.netColor)}`}>
+    <div 
+      className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer hover:scale-105 ${getCourtBackgroundClass(court.netColor)}`}
+      onClick={() => onOpenCourtDetails(courtIndex)}
+    >
       {/* Court Header */}
       <div className="text-center mb-6">
         <div className="flex items-center justify-center mb-2">
@@ -50,44 +47,8 @@ export const CourtCard: React.FC<CourtCardProps> = ({
             <span className="text-2xl ml-2">👑</span>
           )}
         </div>
-        <div className="mt-2 text-sm font-medium relative">
-          <div className="flex items-center justify-center">
-            <span className={`${getCourtTextClass(court.netColor)}`}>Net Color:</span>
-            <span className={`ml-1 ${getNetColorClass(court.netColor)}`}>
-              {court.netColor.charAt(0).toUpperCase() + court.netColor.slice(1)}
-            </span>
-            <button
-              onClick={() => onNetColorDropdownToggle(netColorDropdownOpen === courtIndex ? -1 : courtIndex)}
-              className="ml-1 inline-flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-          </div>
-          
-          {/* Net Color Dropdown */}
-          {netColorDropdownOpen === courtIndex && (
-            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
-              {['red', 'blue', 'green', 'yellow'].map((color) => {
-                // Show the color if it's available or if it's the current court's color
-                const isAvailable = availableNetColors.includes(color) || color === court.netColor;
-                return isAvailable ? (
-                  <button
-                    key={color}
-                    onClick={() => onNetColorChange(courtIndex, color)}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
-                      court.netColor === color ? getNetColorBgClass(color) : ''
-                    }`}
-                  >
-                    <span className={getNetColorClass(color)}>
-                      {color.charAt(0).toUpperCase() + color.slice(1)}
-                    </span>
-                  </button>
-                ) : null;
-              })}
-            </div>
-          )}
+        <div className="mt-2 text-sm text-gray-500">
+          Click to edit court details
         </div>
       </div>
 
@@ -129,16 +90,21 @@ export const CourtCard: React.FC<CourtCardProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2" onClick={(e) => e.stopPropagation()}>
         {court.team1.name !== "No Team" && court.team2.name !== "No Team" && (
-                      <button
-              onClick={() => onReportGame(courtIndex)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm shadow-md w-full"
-            >
-              Finish Game
-            </button>
+          <button
+            onClick={() => onReportGame(courtIndex)}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm shadow-md w-full"
+          >
+            Finish Game
+          </button>
         )}
-        {court.team1.name === "No Team" && court.team2.name === "No Team" && teamQueueLength >= 2 && (
+        {/* Fill from Queue - Show when both teams are empty, or when Kings Court has one team and queue has at least 1 team */}
+        {((court.team1.name === "No Team" && court.team2.name === "No Team" && teamQueueLength >= 2) || 
+          (court.court === "Kings Court" && 
+           ((court.team1.name !== "No Team" && court.team2.name === "No Team") || 
+            (court.team1.name === "No Team" && court.team2.name !== "No Team")) && 
+           teamQueueLength >= 1)) && (
           <button
             onClick={() => onFillFromQueue(courtIndex)}
             className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm shadow-md w-full"

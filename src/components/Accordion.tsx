@@ -6,6 +6,7 @@ interface AccordionProps {
   isOpen?: boolean;
   onToggle?: (isOpen: boolean) => void;
   className?: string;
+  titleClassName?: string;
 }
 
 export const Accordion: React.FC<AccordionProps> = ({
@@ -13,7 +14,8 @@ export const Accordion: React.FC<AccordionProps> = ({
   children,
   isOpen: controlledIsOpen,
   onToggle,
-  className = ''
+  className = '',
+  titleClassName = ''
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(true);
   
@@ -36,7 +38,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         onClick={handleToggle}
         className="w-full flex justify-between items-center p-6 transition-colors duration-200 hover:bg-opacity-90"
       >
-        <h2 className="text-2xl font-bold">
+        <h2 className={`text-2xl font-bold ${titleClassName}`}>
           {title}
         </h2>
         <svg

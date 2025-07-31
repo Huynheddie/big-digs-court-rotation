@@ -22,8 +22,14 @@ export const DeleteTeamModal: React.FC<DeleteTeamModalProps> = ({
   if (!isOpen || !teamToDelete) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-red-50 to-pink-100 border border-red-200 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-gradient-to-br from-red-50 to-pink-100 border border-red-200 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold text-red-900 mb-6 text-center">
           Delete Team
         </h2>

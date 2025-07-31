@@ -2,15 +2,15 @@ import { useEffect } from 'react';
 
 export const useEscapeKey = (callback: () => void, isActive: boolean = true) => {
   useEffect(() => {
+    if (!isActive) return;
+
     const handleEscapeKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isActive) {
+      if (event.key === 'Escape') {
         callback();
       }
     };
 
-    if (isActive) {
-      document.addEventListener('keydown', handleEscapeKey);
-    }
+    document.addEventListener('keydown', handleEscapeKey);
 
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);

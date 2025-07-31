@@ -35,6 +35,10 @@ export const useVolleyballState = () => {
   const [reportingCourtIndex, setReportingCourtIndex] = useState<number | null>(null);
   const [deletingTeamIndex, setDeletingTeamIndex] = useState<number | null>(null);
   const [netColorDropdownOpen, setNetColorDropdownOpen] = useState<number | null>(null);
+  const [teamDetailsModalOpen, setTeamDetailsModalOpen] = useState(false);
+  const [selectedTeamForDetails, setSelectedTeamForDetails] = useState<number | null>(null);
+  const [courtDetailsModalOpen, setCourtDetailsModalOpen] = useState(false);
+  const [selectedCourtForDetails, setSelectedCourtForDetails] = useState<number | null>(null);
 
   // Helper function to add game events
   const addGameEvent = (event: Omit<GameEvent, 'id' | 'timestamp'>, newState?: {
@@ -78,11 +82,13 @@ export const useVolleyballState = () => {
     setEditingTeamIndex(null);
     setReportingCourtIndex(null);
     setDeletingTeamIndex(null);
+    setSelectedTeamForDetails(null);
     setNetColorDropdownOpen(null);
     setIsModalOpen(false);
     setIsEditModalOpen(false);
     setIsReportGameModalOpen(false);
     setIsAddToQueueModalOpen(false);
+    setTeamDetailsModalOpen(false);
   };
 
   // Form handlers
@@ -143,11 +149,13 @@ export const useVolleyballState = () => {
     setEditingTeamIndex(null);
     setReportingCourtIndex(null);
     setDeletingTeamIndex(null);
+    setSelectedTeamForDetails(null);
     setNetColorDropdownOpen(null);
     setIsModalOpen(false);
     setIsEditModalOpen(false);
     setIsReportGameModalOpen(false);
     setIsAddToQueueModalOpen(false);
+    setTeamDetailsModalOpen(false);
   };
 
   const handleEditTeam = (teamIndex: number) => {
@@ -174,22 +182,92 @@ export const useVolleyballState = () => {
       const court = teams[reportingCourtIndex];
       const score = `${gameScoreData.team1Score}-${gameScoreData.team2Score}`;
       
-      const newTeams = teams.map((court, index) => 
-        index === reportingCourtIndex 
-          ? { ...court, score: score }
-          : court
-      );
+      // Determine winner and loser
+      const team1Score = parseInt(gameScoreData.team1Score);
+      const team2Score = parseInt(gameScoreData.team2Score);
+      const winner = team1Score > team2Score ? court.team1 : court.team2;
+      const loser = team1Score > team2Score ? court.team2 : court.team1;
+      
+      // For challenger courts (index 0 and 1), clear the teams after the game
+      // For Kings Court (index 2), winner stays, loser leaves
+      let newTeams = teams.map((court, index) => {
+        if (index === reportingCourtIndex) {
+          if (index < 2) {
+            // Challenger courts - clear teams after game
+            return {
+              ...court,
+              score: score,
+              team1: { name: "No Team", players: ["", "", "", ""] },
+              team2: { name: "No Team", players: ["", "", "", ""] }
+            };
+          } else {
+            // Kings Court - winner stays, loser leaves (unless winner has 2 consecutive wins)
+            const winningTeam = winner;
+            const losingTeam = loser;
+            
+            // Determine which team position the winner was in
+            const winnerWasTeam1 = court.team1.name === winningTeam.name;
+            const currentConsecutiveWins = winnerWasTeam1 
+              ? (court.team1ConsecutiveWins || 0) 
+              : (court.team2ConsecutiveWins || 0);
+            const newConsecutiveWins = currentConsecutiveWins + 1;
+            
+            // If winner has 2 consecutive wins, they must leave to make room for others
+            if (newConsecutiveWins >= 2) {
+              return {
+                ...court,
+                score: score,
+                team1: { name: "No Team", players: ["", "", "", ""] },
+                team2: { name: "No Team", players: ["", "", "", ""] },
+                team1ConsecutiveWins: 0,
+                team2ConsecutiveWins: 0
+              };
+            }
+            
+            // Winner stays, loser leaves, update consecutive wins
+            return {
+              ...court,
+              score: score,
+              team1: winnerWasTeam1 ? winningTeam : { name: "No Team", players: ["", "", "", ""] },
+              team2: winnerWasTeam1 ? { name: "No Team", players: ["", "", "", ""] } : winningTeam,
+              team1ConsecutiveWins: winnerWasTeam1 ? newConsecutiveWins : 0,
+              team2ConsecutiveWins: winnerWasTeam1 ? 0 : newConsecutiveWins
+            };
+          }
+        }
+        return court;
+      });
       
       setTeams(newTeams);
       
       // Add game event with the new state
+      let eventDescription;
+      if (reportingCourtIndex < 2) {
+        eventDescription = `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`;
+      } else {
+        // Kings Court logic
+        const winnerWasTeam1 = court.team1.name === winner.name;
+        const currentConsecutiveWins = winnerWasTeam1 
+          ? (court.team1ConsecutiveWins || 0) 
+          : (court.team2ConsecutiveWins || 0);
+        const newConsecutiveWins = currentConsecutiveWins + 1;
+        
+        if (newConsecutiveWins >= 2) {
+          eventDescription = `${winner.name} wins their second consecutive game and must leave the court to make room for others.`;
+        } else {
+          eventDescription = `${winner.name} stays on the court, ${loser.name} leaves.`;
+        }
+      }
+      
       addGameEvent({
         type: 'game_reported',
-        description: `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`,
+        description: eventDescription,
         courtNumber: court.court,
         teams: [court.team1, court.team2],
         score: score,
-        netColor: court.netColor
+        netColor: court.netColor,
+        winner: winner,
+        loser: loser
       }, {
         teams: newTeams,
         registeredTeams,
@@ -258,6 +336,22 @@ export const useVolleyballState = () => {
     });
   };
 
+  const handleSelectAllTeams = () => {
+    // Get available teams (not on courts and not in queue)
+    const availableTeams = registeredTeams.filter(team => {
+      const inQueue = teamQueue.some(queueTeam => queueTeam.name === team.name);
+      const onCourt = teams.some(court => 
+        court.team1.name === team.name || court.team2.name === team.name
+      );
+      return !inQueue && !onCourt;
+    });
+    
+    // Create indices for the available teams (0, 1, 2, etc.)
+    const availableTeamIndices = availableTeams.map((_, index) => index);
+    
+    setSelectedTeams(new Set(availableTeamIndices));
+  };
+
   const handleRemoveFromQueue = (queueIndex: number) => {
     setTeamQueue(prev => prev.filter((_, index) => index !== queueIndex));
   };
@@ -287,34 +381,116 @@ export const useVolleyballState = () => {
   };
 
   const handleFillFromQueue = (courtIndex: number) => {
-    if (teamQueue.length >= 2) {
-      const firstTeam = teamQueue[0];
-      const secondTeam = teamQueue[1];
-      const court = teams[courtIndex];
+    const court = teams[courtIndex];
+    const isKingsCourt = court.court === "Kings Court";
+    
+    if (isKingsCourt) {
+      // Kings Court logic: fill only empty spots
+      const hasTeam1 = court.team1.name !== "No Team";
+      const hasTeam2 = court.team2.name !== "No Team";
       
-      const newTeams = teams.map((court, index) => 
-        index === courtIndex 
-          ? { ...court, team1: firstTeam, team2: secondTeam }
-          : court
-      );
+      if (hasTeam1 && hasTeam2) {
+        // Both spots filled, can't fill from queue
+        return;
+      }
       
-      const newTeamQueue = teamQueue.slice(2);
+      if (!hasTeam1 && !hasTeam2) {
+        // Both spots empty - fill both spots with different teams from queue
+        if (teamQueue.length >= 2) {
+          const firstTeam = teamQueue[0];
+          const secondTeam = teamQueue[1];
+          const newTeamQueue = teamQueue.slice(2);
+          
+          const newTeams = teams.map((court, index) => 
+            index === courtIndex 
+              ? { 
+                  ...court, 
+                  team1: firstTeam,
+                  team2: secondTeam
+                }
+              : court
+          );
+          
+          setTeams(newTeams);
+          setTeamQueue(newTeamQueue);
+          
+          // Add game event with the new state
+          addGameEvent({
+            type: 'teams_added',
+            description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
+            courtNumber: court.court,
+            teams: [firstTeam, secondTeam],
+            netColor: court.netColor
+          }, {
+            teams: newTeams,
+            registeredTeams,
+            teamQueue: newTeamQueue
+          });
+        }
+        return;
+      }
       
-      setTeams(newTeams);
-      setTeamQueue(newTeamQueue);
-      
-      // Add game event with the new state
-      addGameEvent({
-        type: 'teams_added',
-        description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
-        courtNumber: court.court,
-        teams: [firstTeam, secondTeam],
-        netColor: court.netColor
-      }, {
-        teams: newTeams,
-        registeredTeams,
-        teamQueue: newTeamQueue
-      });
+      if (teamQueue.length >= 1) {
+        const teamToAdd = teamQueue[0];
+        const newTeamQueue = teamQueue.slice(1);
+        
+        const newTeams = teams.map((court, index) => 
+          index === courtIndex 
+            ? { 
+                ...court, 
+                team1: hasTeam1 ? court.team1 : teamToAdd,
+                team2: hasTeam2 ? court.team2 : teamToAdd
+              }
+            : court
+        );
+        
+        setTeams(newTeams);
+        setTeamQueue(newTeamQueue);
+        
+        // Add game event with the new state
+        const existingTeam = hasTeam1 ? court.team1 : court.team2;
+        addGameEvent({
+          type: 'teams_added',
+          description: `${teamToAdd.name} joins ${court.court} to play ${existingTeam.name}.`,
+          courtNumber: court.court,
+          teams: [teamToAdd],
+          netColor: court.netColor
+        }, {
+          teams: newTeams,
+          registeredTeams,
+          teamQueue: newTeamQueue
+        });
+      }
+    } else {
+      // Challenger Court logic: fill both spots
+      if (teamQueue.length >= 2) {
+        const firstTeam = teamQueue[0];
+        const secondTeam = teamQueue[1];
+        
+        const newTeams = teams.map((court, index) => 
+          index === courtIndex 
+            ? { ...court, team1: firstTeam, team2: secondTeam }
+            : court
+        );
+        
+        const newTeamQueue = teamQueue.slice(2);
+        
+        setTeams(newTeams);
+        setTeamQueue(newTeamQueue);
+        
+        // Add game event with the new state
+        addGameEvent({
+          type: 'teams_added',
+          description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
+          courtNumber: court.court,
+          teams: [firstTeam, secondTeam],
+          netColor: court.netColor
+        }, {
+          teams: newTeams,
+          registeredTeams,
+          teamQueue: newTeamQueue
+        });
+      }
     }
   };
 
@@ -350,6 +526,69 @@ export const useVolleyballState = () => {
     setDeletingTeamIndex(null);
   };
 
+  // Team details modal handlers
+  const handleOpenTeamDetails = (teamIndex: number) => {
+    setSelectedTeamForDetails(teamIndex);
+    setTeamDetailsModalOpen(true);
+  };
+
+  const handleCloseTeamDetails = () => {
+    setTeamDetailsModalOpen(false);
+    setSelectedTeamForDetails(null);
+  };
+
+  const handleEditTeamFromDetails = (teamIndex: number) => {
+    handleCloseTeamDetails();
+    handleEditTeam(teamIndex);
+  };
+
+  const handleDeleteTeamFromDetails = (teamIndex: number) => {
+    handleCloseTeamDetails();
+    setDeletingTeamIndex(teamIndex);
+  };
+
+  // Court details modal handlers
+  const handleOpenCourtDetails = (courtIndex: number) => {
+    setSelectedCourtForDetails(courtIndex);
+    setCourtDetailsModalOpen(true);
+  };
+
+  const handleCloseCourtDetails = () => {
+    setCourtDetailsModalOpen(false);
+    setSelectedCourtForDetails(null);
+  };
+
+  const handleTeamChange = (courtIndex: number, teamPosition: 'team1' | 'team2', team: Team | null) => {
+    const court = teams[courtIndex];
+    const newTeam = team || { name: "No Team", players: ["", "", "", ""] };
+    
+    const newTeams = teams.map((court, index) => 
+      index === courtIndex 
+        ? { 
+            ...court, 
+            [teamPosition]: newTeam
+          }
+        : court
+    );
+    
+    setTeams(newTeams);
+    
+    // Add game event with the new state
+    const action = team ? 'added' : 'removed';
+    const teamName = team ? team.name : (teamPosition === 'team1' ? court.team1.name : court.team2.name);
+    addGameEvent({
+      type: 'teams_added',
+      description: `Team "${teamName}" was ${action} from ${court.court} (${teamPosition})`,
+      courtNumber: court.court,
+      teams: team ? [team] : [],
+      netColor: court.netColor
+    }, {
+      teams: newTeams,
+      registeredTeams,
+      teamQueue
+    });
+  };
+
   return {
     // State
     teams,
@@ -360,13 +599,17 @@ export const useVolleyballState = () => {
     isEditModalOpen,
     isReportGameModalOpen,
     isAddToQueueModalOpen,
+    teamDetailsModalOpen,
     formData,
     gameScoreData,
     selectedTeams,
     editingTeamIndex,
     reportingCourtIndex,
     deletingTeamIndex,
+    selectedTeamForDetails,
     netColorDropdownOpen,
+    courtDetailsModalOpen,
+    selectedCourtForDetails,
 
     // Setters
     setTeams,
@@ -377,13 +620,17 @@ export const useVolleyballState = () => {
     setIsEditModalOpen,
     setIsReportGameModalOpen,
     setIsAddToQueueModalOpen,
+    setTeamDetailsModalOpen,
     setFormData,
     setGameScoreData,
     setSelectedTeams,
     setEditingTeamIndex,
     setReportingCourtIndex,
     setDeletingTeamIndex,
+    setSelectedTeamForDetails,
     setNetColorDropdownOpen,
+    setCourtDetailsModalOpen,
+    setSelectedCourtForDetails,
 
     // Handlers
     handleInputChange,
@@ -399,10 +646,18 @@ export const useVolleyballState = () => {
     handleAddToQueue,
     handleAddSelectedTeamsToQueue,
     handleToggleTeamSelection,
+    handleSelectAllTeams,
     handleRemoveFromQueue,
     handleClearTeams,
     handleFillFromQueue,
     handleDeleteTeam,
+    handleOpenTeamDetails,
+    handleCloseTeamDetails,
+    handleEditTeamFromDetails,
+    handleDeleteTeamFromDetails,
+    handleOpenCourtDetails,
+    handleCloseCourtDetails,
+    handleTeamChange,
     resetToEvent
   };
 }; 

@@ -25,9 +25,15 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
   const teamNameCharCount = formData.teamName.length;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800">Add New Team</h2>
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-2xl font-bold mb-4 text-orange-900 text-center">Add New Team</h2>
         
         <form onSubmit={onSubmit} className="space-y-4">
           {/* Team Name */}
@@ -41,8 +47,8 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               name="teamName"
               value={formData.teamName}
               onChange={onInputChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                !isTeamNameValid ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 ${
+                !isTeamNameValid ? 'border-red-500' : 'border-orange-300'
               }`}
               placeholder="Enter team name"
               maxLength={50}
@@ -56,7 +62,7 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
 
           {/* Player 1 */}
           <div>
-            <label htmlFor="player1" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="player1" className="block text-sm font-medium text-orange-700 mb-1">
               Player 1
             </label>
             <input
@@ -65,14 +71,14 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               name="player1"
               value={formData.player1}
               onChange={onInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="Enter player name"
             />
           </div>
 
           {/* Player 2 */}
           <div>
-            <label htmlFor="player2" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="player2" className="block text-sm font-medium text-orange-700 mb-1">
               Player 2
             </label>
             <input
@@ -81,14 +87,14 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               name="player2"
               value={formData.player2}
               onChange={onInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="Enter player name"
             />
           </div>
 
           {/* Player 3 */}
           <div>
-            <label htmlFor="player3" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="player3" className="block text-sm font-medium text-orange-700 mb-1">
               Player 3
             </label>
             <input
@@ -97,14 +103,14 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               name="player3"
               value={formData.player3}
               onChange={onInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="Enter player name"
             />
           </div>
 
           {/* Player 4 */}
           <div>
-            <label htmlFor="player4" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="player4" className="block text-sm font-medium text-orange-700 mb-1">
               Player 4
             </label>
             <input
@@ -113,7 +119,7 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
               name="player4"
               value={formData.player4}
               onChange={onInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="Enter player name"
             />
           </div>
@@ -130,7 +136,7 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
             <button
               type="submit"
               disabled={!isTeamNameValid || !formData.teamName.trim()}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Add Team
             </button>

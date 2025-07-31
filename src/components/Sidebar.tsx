@@ -19,7 +19,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   currentState
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleToggle = () => {
     const newExpandedState = !isExpanded;

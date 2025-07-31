@@ -19,9 +19,9 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
       case 'court_cleared':
         return '❌';
       case 'teams_added':
-        return '🏐';
+        return '👥';
       case 'game_reported':
-        return '📊';
+        return '🏆';
       case 'team_deleted':
         return '🗑️';
       case 'team_added':
@@ -70,10 +70,21 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
       case 'court_cleared':
         return `${event.courtNumber || 'Unknown Court'} cleared`;
       case 'teams_added':
-        const team1Name = event.teams?.[0]?.name || 'Unknown Team';
-        const team2Name = event.teams?.[1]?.name || 'Unknown Team';
-        return `${team1Name} vs ${team2Name}`;
+        if (event.teams && event.teams.length === 1) {
+          // Single team added (Kings Court scenario)
+          const teamName = event.teams[0]?.name || 'Unknown Team';
+          const courtName = event.courtNumber || 'Unknown Court';
+          return `${teamName} joins ${courtName}`;
+        } else {
+          // Multiple teams added (Challenger Court scenario)
+          const team1Name = event.teams?.[0]?.name || 'Unknown Team';
+          const team2Name = event.teams?.[1]?.name || 'Unknown Team';
+          return `${team1Name} vs ${team2Name}`;
+        }
       case 'game_reported':
+        if (event.winner && event.loser) {
+          return `${event.winner.name} beat ${event.loser.name} ${event.score || ''}`;
+        }
         const gameTeam1Name = event.teams?.[0]?.name || 'Unknown Team';
         const gameTeam2Name = event.teams?.[1]?.name || 'Unknown Team';
         return `${gameTeam1Name} vs ${gameTeam2Name} - ${event.score || 'No Score'}`;
@@ -96,8 +107,23 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
       case 'court_cleared':
         return `${event.courtNumber || 'Unknown Court'} was cleared.`;
       case 'teams_added':
-        return `Two new teams were added to ${event.courtNumber || 'a court'}.`;
+        if (event.teams && event.teams.length === 1) {
+          // Single team added (Kings Court scenario)
+          return event.description || `A team was added to ${event.courtNumber || 'a court'}.`;
+        } else {
+          // Multiple teams added (Challenger Court scenario)
+          return `Two new teams were added to ${event.courtNumber || 'a court'}.`;
+        }
       case 'game_reported':
+        // Check if this is a Kings Court game and has winner/loser info
+        if (event.courtNumber === 'Kings Court' && event.winner && event.loser) {
+          // Check if the description indicates a second consecutive win
+          if (event.description.includes('second consecutive game')) {
+            return `<em>${event.winner.name}</em> wins their second consecutive game and must now leave the court.`;
+          } else {
+            return `<em>${event.winner.name}</em> stays on the court, <em>${event.loser.name}</em> leaves.`;
+          }
+        }
         return `A game on ${event.courtNumber || 'a court'} has been completed.`;
       case 'team_deleted':
         const teamName = event.description.split('"')[1] || 'Unknown Team';
@@ -194,11 +220,6 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
                         <div className="text-xs opacity-75 flex-shrink-0">
                           {formatTimestamp(event.timestamp)}
                         </div>
-                        {event.stateSnapshot && (
-                          <div className="text-xs text-blue-400 flex-shrink-0" title="Can be reset to this point">
-                            🔄
-                          </div>
-                        )}
                         <svg
                           className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                           fill="none"
@@ -215,26 +236,28 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
                   {isExpanded && (
                     <div className="px-3 pb-3 border-t border-current border-opacity-20">
                       <div className="pt-3 space-y-3">
-                        {/* Detailed Description */}
-                        <div>
-                          <p className="text-xs leading-relaxed opacity-90 break-words">
-                            {getDetailedDescription(event)}
-                          </p>
-                        </div>
-
-                        {/* Teams Information */}
-                        {event.teams && event.teams.length > 0 && (
+                        {/* Winner/Loser Information */}
+                        {event.winner && event.loser && (
                           <div>
-                            <h4 className="text-xs font-semibold mb-2 opacity-80">Teams Involved:</h4>
+                            <h4 className="text-xs font-semibold mb-2 opacity-80">Game Results:</h4>
                             <div className="space-y-2">
-                              {event.teams.map((team, index) => (
-                                <div key={index} className="bg-white/20 rounded p-2">
-                                  <p className="text-xs font-medium break-words">{team.name}</p>
-                                </div>
-                              ))}
+                              <div className="bg-green-600/80 rounded p-2 border border-green-400">
+                                <p className="text-xs font-bold text-white">🏆 Winner: {event.winner.name}</p>
+                              </div>
+                              <div className="bg-red-600/80 rounded p-2 border border-red-400">
+                                <p className="text-xs font-bold text-white">❌ Loser: {event.loser.name}</p>
+                              </div>
                             </div>
                           </div>
                         )}
+
+                        {/* Detailed Description */}
+                        <div>
+                          <p 
+                            className="text-xs leading-relaxed opacity-90 break-words"
+                            dangerouslySetInnerHTML={{ __html: getDetailedDescription(event) }}
+                          />
+                        </div>
 
                         {/* Score Information */}
                         {event.score && (
@@ -251,7 +274,7 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
                           <div>
                             <h4 className="text-xs font-semibold mb-1 opacity-80">Court:</h4>
                             <p className="text-xs bg-white/30 px-2 py-1 rounded inline-block">
-                              Court {event.courtNumber}
+                              {event.courtNumber}
                             </p>
                           </div>
                         )}
@@ -259,7 +282,7 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
                         {/* Time */}
                         <div>
                           <h4 className="text-xs font-semibold mb-1 opacity-80">Time:</h4>
-                          <p className="text-xs opacity-75">
+                          <p className="text-xs opacity-75 bg-white/30 px-2 py-1 rounded inline-block">
                             {formatTimestampWithSeconds(event.timestamp)}
                           </p>
                         </div>

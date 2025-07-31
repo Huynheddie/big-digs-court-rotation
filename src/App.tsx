@@ -8,6 +8,8 @@ import { EditTeamModal } from './components/modals/EditTeamModal';
 import { AddToQueueModal } from './components/modals/AddToQueueModal';
 import { DeleteTeamModal } from './components/modals/DeleteTeamModal';
 import { ReportGameModal } from './components/modals/ReportGameModal';
+import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
+import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 import { getNetColorBorderClass, getNetColorFocusClass, getCourtTextClass } from './utils/colorUtils';
 
@@ -22,13 +24,16 @@ function App() {
     isEditModalOpen,
     isReportGameModalOpen,
     isAddToQueueModalOpen,
+    teamDetailsModalOpen,
     formData,
     gameScoreData,
     selectedTeams,
     editingTeamIndex,
     reportingCourtIndex,
     deletingTeamIndex,
-    netColorDropdownOpen,
+    selectedTeamForDetails,
+    courtDetailsModalOpen,
+    selectedCourtForDetails,
 
     // Setters
     setTeams,
@@ -38,13 +43,16 @@ function App() {
     setIsEditModalOpen,
     setIsReportGameModalOpen,
     setIsAddToQueueModalOpen,
+    setTeamDetailsModalOpen,
     setFormData,
     setGameScoreData,
     setSelectedTeams,
     setEditingTeamIndex,
     setReportingCourtIndex,
     setDeletingTeamIndex,
-    setNetColorDropdownOpen,
+    setSelectedTeamForDetails,
+    setCourtDetailsModalOpen,
+    setSelectedCourtForDetails,
 
     // Handlers
     handleInputChange,
@@ -60,10 +68,18 @@ function App() {
     handleAddToQueue,
     handleAddSelectedTeamsToQueue,
     handleToggleTeamSelection,
+    handleSelectAllTeams,
     handleRemoveFromQueue,
     handleClearTeams,
     handleFillFromQueue,
     handleDeleteTeam,
+    handleOpenTeamDetails,
+    handleCloseTeamDetails,
+    handleEditTeamFromDetails,
+    handleDeleteTeamFromDetails,
+    handleOpenCourtDetails,
+    handleCloseCourtDetails,
+    handleTeamChange,
     resetToEvent
   } = useVolleyballState();
 
@@ -113,33 +129,39 @@ function App() {
             <div className="w-24 h-1 bg-gray-600 mx-auto rounded-full opacity-40"></div>
           </header>
 
-          {/* Court Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {teams.map((court, courtIndex) => {
-              // Calculate available net colors (colors not used by other courts)
-              const usedColors = teams.map(c => c.netColor);
-              const availableColors = ['red', 'blue', 'green', 'yellow'].filter(color => 
-                !usedColors.includes(color) || color === court.netColor
-              );
-              
-              return (
+          {/* Court Cards - Triangular Layout */}
+          <div className="mb-8">
+            {/* Top Row - Challenger Courts */}
+            <div className="flex justify-center gap-8 mb-8">
+              {teams.slice(0, 2).map((court, courtIndex) => (
                 <CourtCard
                   key={court.court}
                   court={court}
                   courtIndex={courtIndex}
-                  netColorDropdownOpen={netColorDropdownOpen}
-                  onNetColorChange={handleNetColorChange}
-                  onNetColorDropdownToggle={(index) => 
-                    setNetColorDropdownOpen(index === -1 ? null : index)
-                  }
                   onReportGame={handleReportGame}
                   onClearTeams={handleClearTeams}
                   onFillFromQueue={handleFillFromQueue}
+                  onOpenCourtDetails={handleOpenCourtDetails}
                   teamQueueLength={teamQueue.length}
-                  availableNetColors={availableColors}
                 />
-              );
-            })}
+              ))}
+            </div>
+            
+            {/* Bottom Row - Kings Court */}
+            <div className="flex justify-center">
+              {teams.slice(2, 3).map((court, courtIndex) => (
+                <CourtCard
+                  key={court.court}
+                  court={court}
+                  courtIndex={courtIndex + 2} // Adjust index for Kings Court
+                  onReportGame={handleReportGame}
+                  onClearTeams={handleClearTeams}
+                  onFillFromQueue={handleFillFromQueue}
+                  onOpenCourtDetails={handleOpenCourtDetails}
+                  teamQueueLength={teamQueue.length}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Team Queue Accordion */}
@@ -148,6 +170,7 @@ function App() {
             isOpen={isQueueOpen}
             onToggle={setIsQueueOpen}
             className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 mb-8 shadow-lg"
+            titleClassName="text-blue-900"
           >
             <div className="flex justify-end mb-6 pt-4">
               <button
@@ -196,12 +219,13 @@ function App() {
             title={`Teams (${registeredTeams.length})`}
             isOpen={isTeamsOpen}
             onToggle={setIsTeamsOpen}
-            className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 mb-8 shadow-lg"
+            className="bg-gradient-to-br from-orange-50 to-amber-100 border border-orange-200 mb-8 shadow-lg"
+            titleClassName="text-orange-900"
           >
             <div className="flex justify-end mb-6 pt-4">
               <button
                 onClick={handleOpenModal}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md"
+                className="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -213,33 +237,22 @@ function App() {
             <div className="max-h-96 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {registeredTeams.map((team, index) => (
-                  <div key={team.name} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-emerald-300 shadow-md hover:shadow-lg transition-shadow duration-200 relative">
-                    <div className="flex justify-between items-start mb-3">
-                      <button
-                        onClick={() => handleEditTeam(index)}
-                        className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                        title="Edit team"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setDeletingTeamIndex(index)}
-                        className="text-gray-500 hover:text-gray-700 transition-colors text-2xl font-bold leading-none"
-                        title="Delete team"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <h3 className="text-lg font-semibold text-emerald-900 text-center mb-3 break-words">
+                  <div 
+                    key={team.name} 
+                    onClick={() => handleOpenTeamDetails(index)}
+                    className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-orange-300 shadow-md hover:shadow-lg transition-all duration-200 relative cursor-pointer hover:scale-105"
+                  >
+                    <h3 className="text-lg font-semibold text-orange-900 text-center mb-2 break-words">
                       {team.name}
                     </h3>
+                    <div className="text-center mb-3 text-sm text-orange-600">
+                      Click to edit team details
+                    </div>
                     <div className="space-y-2">
                       {team.players.map((player, playerIndex) => (
-                        <div key={playerIndex} className="flex items-center justify-between p-2 bg-emerald-50/60 rounded border border-emerald-200">
-                          <span className="text-emerald-800 font-medium text-sm">{player}</span>
-                          <span className="text-xs text-emerald-700 bg-emerald-200 px-2 py-1 rounded">
+                        <div key={playerIndex} className="flex items-center justify-between p-2 bg-orange-50/60 rounded border border-orange-200">
+                          <span className="text-orange-800 font-medium text-sm">{player}</span>
+                          <span className="text-xs text-orange-700 bg-orange-200 px-2 py-1 rounded">
                             P{playerIndex + 1}
                           </span>
                         </div>
@@ -275,6 +288,7 @@ function App() {
         availableTeams={availableTeams}
         selectedTeams={selectedTeams}
         onToggleTeamSelection={handleToggleTeamSelection}
+        onSelectAllTeams={handleSelectAllTeams}
         onAddSelectedTeams={handleAddSelectedTeamsToQueue}
         onCancel={handleCancel}
       />
@@ -295,6 +309,28 @@ function App() {
         onCancel={handleCancel}
         team1Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team1.name : ''}
         team2Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team2.name : ''}
+      />
+
+      <TeamDetailsModal
+        isOpen={teamDetailsModalOpen}
+        team={selectedTeamForDetails !== null ? registeredTeams[selectedTeamForDetails] : null}
+        gameEvents={gameEvents}
+        onClose={handleCloseTeamDetails}
+        onEdit={handleEditTeamFromDetails}
+        onDelete={handleDeleteTeamFromDetails}
+        teamIndex={selectedTeamForDetails}
+      />
+
+      <CourtDetailsModal
+        isOpen={courtDetailsModalOpen}
+        court={selectedCourtForDetails !== null ? teams[selectedCourtForDetails] : null}
+        courtIndex={selectedCourtForDetails}
+        teamQueue={teamQueue}
+        registeredTeams={registeredTeams}
+        teams={teams}
+        onClose={handleCloseCourtDetails}
+        onNetColorChange={handleNetColorChange}
+        onTeamChange={handleTeamChange}
       />
     </div>
   );

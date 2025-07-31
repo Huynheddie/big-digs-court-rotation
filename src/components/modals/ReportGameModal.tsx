@@ -1,5 +1,6 @@
 import React from 'react';
 import type { GameScoreData } from '../../types';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface ReportGameModalProps {
   isOpen: boolean;
@@ -20,18 +21,37 @@ export const ReportGameModal: React.FC<ReportGameModalProps> = ({
   team1Name,
   team2Name
 }) => {
+  useEscapeKey(onCancel, isOpen);
+
+  // Auto-fill with 21-15 for testing if fields are empty
+  React.useEffect(() => {
+    if (isOpen && (!gameScoreData.team1Score || !gameScoreData.team2Score)) {
+      // Simulate input changes to auto-fill with 21-15
+      const team1Event = { target: { name: 'team1Score', value: '21' } } as React.ChangeEvent<HTMLInputElement>;
+      const team2Event = { target: { name: 'team2Score', value: '15' } } as React.ChangeEvent<HTMLInputElement>;
+      onScoreInputChange(team1Event);
+      onScoreInputChange(team2Event);
+    }
+  }, [isOpen, gameScoreData.team1Score, gameScoreData.team2Score, onScoreInputChange]);
+
   if (!isOpen) return null;
 
   const isValidScore = (score: string) => {
     const num = parseInt(score);
-    return !isNaN(num) && num >= 0 && num <= 50;
+    return !isNaN(num) && num >= 0 && num <= 25;
   };
 
   const isFormValid = isValidScore(gameScoreData.team1Score) && isValidScore(gameScoreData.team2Score);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
           Report Game Score
         </h2>
@@ -55,11 +75,11 @@ export const ReportGameModal: React.FC<ReportGameModalProps> = ({
                 }`}
                 placeholder="0"
                 min="0"
-                max="50"
+                max="25"
                 required
               />
               {gameScoreData.team1Score && !isValidScore(gameScoreData.team1Score) && (
-                <p className="text-red-500 text-xs mt-1">Score must be 0-50</p>
+                <p className="text-red-500 text-xs mt-1">Score must be 0-25</p>
               )}
             </div>
 
@@ -80,11 +100,11 @@ export const ReportGameModal: React.FC<ReportGameModalProps> = ({
                 }`}
                 placeholder="0"
                 min="0"
-                max="50"
+                max="25"
                 required
               />
               {gameScoreData.team2Score && !isValidScore(gameScoreData.team2Score) && (
-                <p className="text-red-500 text-xs mt-1">Score must be 0-50</p>
+                <p className="text-red-500 text-xs mt-1">Score must be 0-25</p>
               )}
             </div>
           </div>
@@ -94,7 +114,7 @@ export const ReportGameModal: React.FC<ReportGameModalProps> = ({
             <div className="bg-gray-50 rounded-lg p-3 text-center">
               <p className="text-sm text-gray-600">Final Score:</p>
               <p className="text-lg font-bold text-gray-800">
-                {team1Name} {gameScoreData.team1Score} - {gameScoreData.team2Score} {team2Name}
+                {gameScoreData.team1Score} - {gameScoreData.team2Score}
               </p>
             </div>
           )}

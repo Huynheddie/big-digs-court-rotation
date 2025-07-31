@@ -15,6 +15,8 @@ export interface Court {
   status: string;
   score: string;
   netColor: string;
+  team1ConsecutiveWins?: number;
+  team2ConsecutiveWins?: number;
 }
 
 export interface FormData {
@@ -39,6 +41,8 @@ export interface GameEvent {
   teams?: Team[];
   score?: string;
   netColor?: string;
+  winner?: Team;
+  loser?: Team;
   stateSnapshot?: {
     teams: Court[];
     registeredTeams: Team[];

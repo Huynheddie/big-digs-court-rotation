@@ -56,7 +56,9 @@ export const initialTeams: Court[] = [
     },
     status: "Available",
     score: "0-0",
-    netColor: "green"
+    netColor: "green",
+    team1ConsecutiveWins: 0,
+    team2ConsecutiveWins: 0
   }
 ];
 

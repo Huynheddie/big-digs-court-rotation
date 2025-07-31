@@ -7,6 +7,7 @@ interface AddToQueueModalProps {
   availableTeams: Team[];
   selectedTeams: Set<number>;
   onToggleTeamSelection: (teamIndex: number) => void;
+  onSelectAllTeams: () => void;
   onAddSelectedTeams: () => void;
   onCancel: () => void;
 }
@@ -16,6 +17,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   availableTeams,
   selectedTeams,
   onToggleTeamSelection,
+  onSelectAllTeams,
   onAddSelectedTeams,
   onCancel
 }) => {
@@ -24,11 +26,34 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold text-blue-900 mb-6 text-center">
           Add Teams to Queue
         </h2>
+        
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={onSelectAllTeams}
+            disabled={availableTeams.length === 0}
+            className={`font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm flex items-center shadow-md ${
+              availableTeams.length === 0
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Select All
+          </button>
+        </div>
         
         <div className="flex-1 overflow-y-auto mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

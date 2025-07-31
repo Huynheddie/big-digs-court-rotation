@@ -25,8 +25,14 @@ export const EditTeamModal: React.FC<EditTeamModalProps> = ({
   const teamNameCharCount = formData.teamName.length;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-white rounded-lg p-6 w-full max-w-md mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Team</h2>
         
         <form onSubmit={onSubmit} className="space-y-4">
