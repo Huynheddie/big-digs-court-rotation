@@ -42,7 +42,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
                 }`}
                 onClick={() => onToggleTeamSelection(index)}
               >
-                <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center">
+                <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center break-words">
                   {team.name}
                 </h3>
                 <div className="space-y-2">

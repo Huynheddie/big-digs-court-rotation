@@ -68,6 +68,7 @@ function App() {
   // Accordion state
   const [isQueueOpen, setIsQueueOpen] = useState(true);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
@@ -79,18 +80,35 @@ function App() {
     }
   };
 
+  const handleSidebarToggle = (expanded: boolean) => {
+    setIsSidebarExpanded(expanded);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-green-200 to-green-300 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            radial-gradient(circle at 25% 25%, rgba(0,0,0,0.1) 1px, transparent 1px),
+            radial-gradient(circle at 75% 75%, rgba(0,0,0,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px, 40px 40px',
+          backgroundPosition: '0 0, 20px 20px'
+        }}></div>
+      </div>
+
       {/* Sidebar */}
-      <Sidebar gameEvents={gameEvents} />
+      <Sidebar gameEvents={gameEvents} onToggle={handleSidebarToggle} />
       
-      {/* Main Content with left margin for sidebar */}
-      <div className="ml-16">
+      {/* Main Content */}
+      <div className={`transition-all duration-300 relative z-10 ${isSidebarExpanded ? 'ml-80' : 'ml-16'}`}>
         <div className="container mx-auto px-4 py-8">
           <header className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center drop-shadow-sm">
               🏐 Big Digs Court Rotation 🏐
             </h1>
+            <div className="w-24 h-1 bg-gray-600 mx-auto rounded-full opacity-40"></div>
           </header>
 
           {/* Court Cards */}
@@ -118,7 +136,7 @@ function App() {
             title={`Queue (${teamQueue.length})`}
             isOpen={isQueueOpen}
             onToggle={setIsQueueOpen}
-            className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 mb-8"
+            className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 mb-8 shadow-lg"
           >
             <div className="flex justify-end mb-6 pt-4">
               <button
@@ -143,7 +161,7 @@ function App() {
                     >
                       ×
                     </button>
-                    <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center pr-8">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-3 text-center pr-8 break-words">
                       {team.name}
                     </h3>
                     <div className="space-y-2">
@@ -167,7 +185,7 @@ function App() {
             title={`Teams (${registeredTeams.length})`}
             isOpen={isTeamsOpen}
             onToggle={setIsTeamsOpen}
-            className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 mb-8"
+            className="bg-gradient-to-br from-emerald-50 to-teal-100 border border-emerald-200 mb-8 shadow-lg"
           >
             <div className="flex justify-end mb-6 pt-4">
               <button
@@ -203,7 +221,7 @@ function App() {
                         ×
                       </button>
                     </div>
-                    <h3 className="text-lg font-semibold text-emerald-900 text-center mb-3">
+                    <h3 className="text-lg font-semibold text-emerald-900 text-center mb-3 break-words">
                       {team.name}
                     </h3>
                     <div className="space-y-2">

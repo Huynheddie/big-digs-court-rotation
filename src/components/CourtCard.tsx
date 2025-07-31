@@ -89,7 +89,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({
       <div className="grid grid-cols-2 gap-4 mb-4">
         {/* Team 1 - Left Side */}
         <div>
-          <h3 className={`text-lg font-semibold mb-3 text-center ${getTeam1ColorClass(court.netColor)}`}>
+          <h3 className={`text-lg font-semibold mb-3 text-center ${getTeam1ColorClass(court.netColor)} break-words`}>
             {court.team1.name}
           </h3>
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({
 
         {/* Team 2 - Right Side */}
         <div>
-          <h3 className={`text-lg font-semibold mb-3 text-center ${getTeam2ColorClass(court.netColor)}`}>
+          <h3 className={`text-lg font-semibold mb-3 text-center ${getTeam2ColorClass(court.netColor)} break-words`}>
             {court.team2.name}
           </h3>
           <div className="space-y-2">
@@ -125,12 +125,12 @@ export const CourtCard: React.FC<CourtCardProps> = ({
       {/* Action Buttons */}
       <div className="text-center space-y-2">
         {court.team1.name !== "No Team" && court.team2.name !== "No Team" && (
-          <button
-            onClick={() => onReportGame(courtIndex)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm shadow-md w-full"
-          >
-            Report Game
-          </button>
+                      <button
+              onClick={() => onReportGame(courtIndex)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 text-sm shadow-md w-full"
+            >
+              Finish Game
+            </button>
         )}
         {court.team1.name === "No Team" && court.team2.name === "No Team" && teamQueueLength >= 2 && (
           <button

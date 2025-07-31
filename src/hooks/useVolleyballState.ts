@@ -139,10 +139,11 @@ export const useVolleyballState = () => {
       // Add game event
       addGameEvent({
         type: 'game_reported',
-        description: `Game reported on Court ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`,
+        description: `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`,
         courtNumber: court.court,
         teams: [court.team1, court.team2],
-        score: score
+        score: score,
+        netColor: court.netColor
       });
       
       setGameScoreData({ team1Score: '', team2Score: '' });
@@ -178,6 +179,16 @@ export const useVolleyballState = () => {
     const selectedTeamsArray = Array.from(selectedTeams);
     const teamsToAdd = selectedTeamsArray.map(index => registeredTeams[index]);
     setTeamQueue(prev => [...prev, ...teamsToAdd]);
+    
+    // Add game event for teams being queued
+    if (teamsToAdd.length > 0) {
+      addGameEvent({
+        type: 'teams_queued',
+        description: `Teams added to queue: ${teamsToAdd.map(team => team.name).join(', ')}`,
+        teams: teamsToAdd
+      });
+    }
+    
     setSelectedTeams(new Set());
     setIsAddToQueueModalOpen(false);
   };
@@ -209,9 +220,10 @@ export const useVolleyballState = () => {
     // Add game event
     addGameEvent({
       type: 'court_cleared',
-      description: `Court ${court.court} was cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
+      description: `${court.court} was cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
       courtNumber: court.court,
-      teams: [court.team1, court.team2]
+      teams: [court.team1, court.team2],
+      netColor: court.netColor
     });
   };
 
@@ -232,9 +244,10 @@ export const useVolleyballState = () => {
       // Add game event
       addGameEvent({
         type: 'teams_added',
-        description: `Teams added to Court ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
+        description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
         courtNumber: court.court,
-        teams: [firstTeam, secondTeam]
+        teams: [firstTeam, secondTeam],
+        netColor: court.netColor
       });
     }
   };
