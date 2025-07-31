@@ -7,6 +7,7 @@ import { AddTeamModal } from './components/modals/AddTeamModal';
 import { EditTeamModal } from './components/modals/EditTeamModal';
 import { AddToQueueModal } from './components/modals/AddToQueueModal';
 import { DeleteTeamModal } from './components/modals/DeleteTeamModal';
+import { ReportGameModal } from './components/modals/ReportGameModal';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 import { getNetColorBorderClass, getNetColorFocusClass, getCourtTextClass } from './utils/colorUtils';
 
@@ -284,6 +285,16 @@ function App() {
         isOnCourt={isTeamOnCourtForDelete}
         onDelete={handleDeleteConfirm}
         onCancel={() => setDeletingTeamIndex(null)}
+      />
+
+      <ReportGameModal
+        isOpen={isReportGameModalOpen}
+        gameScoreData={gameScoreData}
+        onScoreInputChange={handleScoreInputChange}
+        onSubmit={handleReportGameSubmit}
+        onCancel={handleCancel}
+        team1Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team1.name : ''}
+        team2Name={reportingCourtIndex !== null ? teams[reportingCourtIndex].team2.name : ''}
       />
     </div>
   );
