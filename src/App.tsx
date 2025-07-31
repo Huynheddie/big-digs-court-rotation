@@ -62,13 +62,13 @@ function App() {
     handleRemoveFromQueue,
     handleClearTeams,
     handleFillFromQueue,
-    handleDeleteTeam
+    handleDeleteTeam,
+    resetToEvent
   } = useVolleyballState();
 
   // Accordion state
   const [isQueueOpen, setIsQueueOpen] = useState(true);
   const [isTeamsOpen, setIsTeamsOpen] = useState(true);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
@@ -77,11 +77,8 @@ function App() {
   const handleDeleteConfirm = () => {
     if (deletingTeamIndex !== null) {
       handleDeleteTeam(deletingTeamIndex);
+      setDeletingTeamIndex(null);
     }
-  };
-
-  const handleSidebarToggle = (expanded: boolean) => {
-    setIsSidebarExpanded(expanded);
   };
 
   return (
@@ -99,10 +96,14 @@ function App() {
       </div>
 
       {/* Sidebar */}
-      <Sidebar gameEvents={gameEvents} onToggle={handleSidebarToggle} />
+      <Sidebar 
+        gameEvents={gameEvents}
+        onResetToEvent={resetToEvent}
+        currentState={{ teams, registeredTeams, teamQueue }}
+      />
       
       {/* Main Content */}
-      <div className={`transition-all duration-300 relative z-10 ${isSidebarExpanded ? 'ml-80' : 'ml-16'}`}>
+      <div className={`transition-all duration-300 relative z-10 ml-16`}>
         <div className="container mx-auto px-4 py-8">
           <header className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center drop-shadow-sm">
@@ -113,22 +114,31 @@ function App() {
 
           {/* Court Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            {teams.map((court, courtIndex) => (
-              <CourtCard
-                key={court.court}
-                court={court}
-                courtIndex={courtIndex}
-                netColorDropdownOpen={netColorDropdownOpen}
-                onNetColorChange={handleNetColorChange}
-                onNetColorDropdownToggle={(index) => 
-                  handleNetColorChange(courtIndex, index === -1 ? 'red' : 'blue')
-                }
-                onReportGame={handleReportGame}
-                onClearTeams={handleClearTeams}
-                onFillFromQueue={handleFillFromQueue}
-                teamQueueLength={teamQueue.length}
-              />
-            ))}
+            {teams.map((court, courtIndex) => {
+              // Calculate available net colors (colors not used by other courts)
+              const usedColors = teams.map(c => c.netColor);
+              const availableColors = ['red', 'blue', 'green', 'yellow'].filter(color => 
+                !usedColors.includes(color) || color === court.netColor
+              );
+              
+              return (
+                <CourtCard
+                  key={court.court}
+                  court={court}
+                  courtIndex={courtIndex}
+                  netColorDropdownOpen={netColorDropdownOpen}
+                  onNetColorChange={handleNetColorChange}
+                  onNetColorDropdownToggle={(index) => 
+                    setNetColorDropdownOpen(index === -1 ? null : index)
+                  }
+                  onReportGame={handleReportGame}
+                  onClearTeams={handleClearTeams}
+                  onFillFromQueue={handleFillFromQueue}
+                  teamQueueLength={teamQueue.length}
+                  availableNetColors={availableColors}
+                />
+              );
+            })}
           </div>
 
           {/* Team Queue Accordion */}

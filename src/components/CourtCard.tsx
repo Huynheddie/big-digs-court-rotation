@@ -23,6 +23,7 @@ interface CourtCardProps {
   onClearTeams: (courtIndex: number) => void;
   onFillFromQueue: (courtIndex: number) => void;
   teamQueueLength: number;
+  availableNetColors: string[];
 }
 
 export const CourtCard: React.FC<CourtCardProps> = ({
@@ -34,7 +35,8 @@ export const CourtCard: React.FC<CourtCardProps> = ({
   onReportGame,
   onClearTeams,
   onFillFromQueue,
-  teamQueueLength
+  teamQueueLength,
+  availableNetColors
 }) => {
   return (
     <div className={`rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-300 ${getCourtBackgroundClass(court.netColor)}`}>
@@ -67,19 +69,23 @@ export const CourtCard: React.FC<CourtCardProps> = ({
           {/* Net Color Dropdown */}
           {netColorDropdownOpen === courtIndex && (
             <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
-              {['red', 'blue', 'green', 'yellow'].map((color) => (
-                <button
-                  key={color}
-                  onClick={() => onNetColorChange(courtIndex, color)}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
-                    court.netColor === color ? getNetColorBgClass(color) : ''
-                  }`}
-                >
-                  <span className={getNetColorClass(color)}>
-                    {color.charAt(0).toUpperCase() + color.slice(1)}
-                  </span>
-                </button>
-              ))}
+              {['red', 'blue', 'green', 'yellow'].map((color) => {
+                // Show the color if it's available or if it's the current court's color
+                const isAvailable = availableNetColors.includes(color) || color === court.netColor;
+                return isAvailable ? (
+                  <button
+                    key={color}
+                    onClick={() => onNetColorChange(courtIndex, color)}
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
+                      court.netColor === color ? getNetColorBgClass(color) : ''
+                    }`}
+                  >
+                    <span className={getNetColorClass(color)}>
+                      {color.charAt(0).toUpperCase() + color.slice(1)}
+                    </span>
+                  </button>
+                ) : null;
+              })}
             </div>
           )}
         </div>

@@ -39,6 +39,11 @@ export interface GameEvent {
   teams?: Team[];
   score?: string;
   netColor?: string;
+  stateSnapshot?: {
+    teams: Court[];
+    registeredTeams: Team[];
+    teamQueue: Team[];
+  };
 }
 
 export type NetColor = 'red' | 'blue' | 'green' | 'yellow'; 

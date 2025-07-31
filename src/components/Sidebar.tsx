@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { GameTracker } from './GameTracker';
-import type { GameEvent } from '../types';
+import type { GameEvent, Court, Team } from '../types';
 
 interface SidebarProps {
   gameEvents: GameEvent[];
+  onResetToEvent: (eventId: string) => void;
   onToggle?: (isExpanded: boolean) => void;
+  currentState?: {
+    teams: Court[];
+    registeredTeams: Team[];
+    teamQueue: Team[];
+  };
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ gameEvents, onToggle }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  gameEvents,
+  onResetToEvent,
+  onToggle,
+  currentState
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleToggle = () => {
@@ -23,12 +34,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameEvents, onToggle }) => {
       }`}
     >
       {/* Header/Toggle Button */}
-      <div className="h-16 flex items-center justify-center border-b border-blue-300">
-        <div className="flex items-center justify-center w-full h-full">
+      <div className={`h-16 flex items-center border-b border-blue-300 ${!isExpanded ? 'pb-8' : ''}`}>
+        <div className="flex items-center w-full h-full">
           {isExpanded ? (
-            <div className="flex items-center justify-between w-full px-4">
+            <div className="flex items-center justify-between w-full px-4 h-full">
               <div className="flex items-center space-x-2 text-white">
-                <span className="text-lg">📊</span>
                 <span className="font-semibold text-sm">Game Tracker</span>
                 <span className="text-xs bg-white/20 px-2 py-1 rounded-full text-white">
                   {gameEvents.length}
@@ -45,16 +55,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameEvents, onToggle }) => {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center space-y-1">
+            <div className="flex flex-col items-center justify-center space-y-1 pt-8 w-full">
               <span className="text-xs text-white/90 font-medium">Tracker</span>
-              {gameEvents.length > 0 && (
-                <span className="text-xs bg-white/20 text-white px-1.5 py-0.5 rounded-full">
-                  {gameEvents.length}
-                </span>
-              )}
               <button
                 onClick={handleToggle}
-                className="text-white hover:bg-white/20 p-1 rounded transition-colors duration-200 mt-2"
+                className="text-white hover:bg-white/20 p-1 rounded transition-colors duration-200 mt-4"
                 title="Expand sidebar"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ gameEvents, onToggle }) => {
 
       {/* Content */}
       <div className={`transition-opacity duration-300 h-[calc(100vh-4rem)] ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <GameTracker gameEvents={gameEvents} />
+        <GameTracker gameEvents={gameEvents} onResetToEvent={onResetToEvent} currentState={currentState} />
       </div>
 
       {/* Collapsed State Indicator */}

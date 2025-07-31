@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import type { GameEvent } from '../types';
+import type { GameEvent, Court, Team } from '../types';
 
 interface GameTrackerProps {
   gameEvents: GameEvent[];
+  onResetToEvent: (eventId: string) => void;
+  currentState?: {
+    teams: Court[];
+    registeredTeams: Team[];
+    teamQueue: Team[];
+  };
 }
 
-export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents }) => {
+export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToEvent, currentState }) => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
 
   const getEventIcon = (type: GameEvent['type']) => {
@@ -62,40 +68,47 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents }) => {
   const getConciseDescription = (event: GameEvent) => {
     switch (event.type) {
       case 'court_cleared':
-        return `${event.courtNumber} cleared`;
+        return `${event.courtNumber || 'Unknown Court'} cleared`;
       case 'teams_added':
-        return `${event.teams?.[0]?.name} vs ${event.teams?.[1]?.name}`;
+        const team1Name = event.teams?.[0]?.name || 'Unknown Team';
+        const team2Name = event.teams?.[1]?.name || 'Unknown Team';
+        return `${team1Name} vs ${team2Name}`;
       case 'game_reported':
-        return `${event.teams?.[0]?.name} vs ${event.teams?.[1]?.name} - ${event.score}`;
+        const gameTeam1Name = event.teams?.[0]?.name || 'Unknown Team';
+        const gameTeam2Name = event.teams?.[1]?.name || 'Unknown Team';
+        return `${gameTeam1Name} vs ${gameTeam2Name} - ${event.score || 'No Score'}`;
       case 'team_deleted':
-        return `Team "${event.description.split('"')[1]}" deleted`;
+        const deletedTeamName = event.description.split('"')[1] || 'Unknown Team';
+        return `Team "${deletedTeamName}" deleted`;
       case 'team_added':
-        return `Team "${event.description.split('"')[1]}" added`;
+        const addedTeamName = event.description.split('"')[1] || 'Unknown Team';
+        return `Team "${addedTeamName}" added`;
       case 'teams_queued':
-        return `${event.teams?.map(team => team.name).join(', ')} added to queue`;
+        const queuedTeamNames = event.teams?.map(team => team.name || 'Unknown Team').join(', ') || 'No teams';
+        return `${queuedTeamNames} added to queue`;
       default:
-        return event.description;
+        return event.description || 'Event occurred';
     }
   };
 
   const getDetailedDescription = (event: GameEvent) => {
     switch (event.type) {
       case 'court_cleared':
-        return `${event.courtNumber} was cleared.`;
+        return `${event.courtNumber || 'Unknown Court'} was cleared.`;
       case 'teams_added':
-        return `Two new teams were added to ${event.courtNumber}.`;
+        return `Two new teams were added to ${event.courtNumber || 'a court'}.`;
       case 'game_reported':
-        return `A game on ${event.courtNumber} has been completed.`;
+        return `A game on ${event.courtNumber || 'a court'} has been completed.`;
       case 'team_deleted':
-        const teamName = event.description.split('"')[1];
+        const teamName = event.description.split('"')[1] || 'Unknown Team';
         return `Team "${teamName}" has been permanently removed from the system.`;
       case 'team_added':
-        const newTeamName = event.description.split('"')[1];
+        const newTeamName = event.description.split('"')[1] || 'Unknown Team';
         return `A new team "${newTeamName}" has been registered in the system.`;
       case 'teams_queued':
         return `Teams were added to the waiting queue.`;
       default:
-        return event.description;
+        return event.description || 'An event occurred in the system.';
     }
   };
 
@@ -109,6 +122,41 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents }) => {
       }
       return newSet;
     });
+  };
+
+  // Function to compare current state with event state
+  const isStateSimilar = (eventState: { teams: Court[]; registeredTeams: Team[]; teamQueue: Team[] }) => {
+    // Check if currentState is available
+    if (!currentState) return false;
+    
+    // Compare teams (courts)
+    if (eventState.teams.length !== currentState.teams.length) return false;
+    for (let i = 0; i < eventState.teams.length; i++) {
+      const eventCourt = eventState.teams[i];
+      const currentCourt = currentState.teams[i];
+      if (eventCourt.team1.name !== currentCourt.team1.name || 
+          eventCourt.team2.name !== currentCourt.team2.name) {
+        return false;
+      }
+    }
+
+    // Compare registered teams
+    if (eventState.registeredTeams.length !== currentState.registeredTeams.length) return false;
+    for (let i = 0; i < eventState.registeredTeams.length; i++) {
+      if (eventState.registeredTeams[i].name !== currentState.registeredTeams[i].name) {
+        return false;
+      }
+    }
+
+    // Compare team queue
+    if (eventState.teamQueue.length !== currentState.teamQueue.length) return false;
+    for (let i = 0; i < eventState.teamQueue.length; i++) {
+      if (eventState.teamQueue[i].name !== currentState.teamQueue[i].name) {
+        return false;
+      }
+    }
+
+    return true;
   };
 
   return (
@@ -146,6 +194,11 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents }) => {
                         <div className="text-xs opacity-75 flex-shrink-0">
                           {formatTimestamp(event.timestamp)}
                         </div>
+                        {event.stateSnapshot && (
+                          <div className="text-xs text-blue-400 flex-shrink-0" title="Can be reset to this point">
+                            🔄
+                          </div>
+                        )}
                         <svg
                           className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                           fill="none"
@@ -209,6 +262,26 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents }) => {
                           <p className="text-xs opacity-75">
                             {formatTimestampWithSeconds(event.timestamp)}
                           </p>
+                        </div>
+
+                        {/* Reset Button */}
+                        <div className="pt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm('Are you sure you want to reset the application state to this point? This will delete all events after this one and cannot be undone.')) {
+                                onResetToEvent(event.id);
+                              }
+                            }}
+                            disabled={event.stateSnapshot && isStateSimilar(event.stateSnapshot)}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 px-3 rounded transition-colors duration-200 flex items-center justify-center space-x-1 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            title={event.stateSnapshot && isStateSimilar(event.stateSnapshot) ? "Current state is already similar to this point" : "Reset application state to this point in time"}
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Reset to This Point</span>
+                          </button>
                         </div>
                       </div>
                     </div>

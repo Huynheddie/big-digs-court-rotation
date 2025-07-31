@@ -37,13 +37,52 @@ export const useVolleyballState = () => {
   const [netColorDropdownOpen, setNetColorDropdownOpen] = useState<number | null>(null);
 
   // Helper function to add game events
-  const addGameEvent = (event: Omit<GameEvent, 'id' | 'timestamp'>) => {
+  const addGameEvent = (event: Omit<GameEvent, 'id' | 'timestamp'>, newState?: {
+    teams: Court[];
+    registeredTeams: Team[];
+    teamQueue: Team[];
+  }) => {
     const newEvent: GameEvent = {
       ...event,
       id: generateRandomString('event'),
-      timestamp: new Date()
+      timestamp: new Date(),
+      stateSnapshot: newState || {
+        teams: JSON.parse(JSON.stringify(teams)), // Deep copy
+        registeredTeams: JSON.parse(JSON.stringify(registeredTeams)),
+        teamQueue: JSON.parse(JSON.stringify(teamQueue))
+      }
     };
     setGameEvents(prev => [newEvent, ...prev]); // Add to beginning for newest first
+  };
+
+  // Function to reset state to a specific event
+  const resetToEvent = (eventId: string) => {
+    const eventIndex = gameEvents.findIndex(event => event.id === eventId);
+    if (eventIndex === -1) return;
+
+    const targetEvent = gameEvents[eventIndex];
+    if (!targetEvent.stateSnapshot) return;
+
+    // Reset all state to the snapshot
+    setTeams(targetEvent.stateSnapshot.teams);
+    setRegisteredTeams(targetEvent.stateSnapshot.registeredTeams);
+    setTeamQueue(targetEvent.stateSnapshot.teamQueue);
+
+    // Remove all events after the target event
+    setGameEvents(prev => prev.slice(eventIndex));
+
+    // Reset all modal and form states
+    setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
+    setGameScoreData({ team1Score: '', team2Score: '' });
+    setSelectedTeams(new Set());
+    setEditingTeamIndex(null);
+    setReportingCourtIndex(null);
+    setDeletingTeamIndex(null);
+    setNetColorDropdownOpen(null);
+    setIsModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsReportGameModalOpen(false);
+    setIsAddToQueueModalOpen(false);
   };
 
   // Form handlers
@@ -64,12 +103,17 @@ export const useVolleyballState = () => {
       name: formData.teamName,
       players: [formData.player1, formData.player2, formData.player3, formData.player4]
     };
-    setRegisteredTeams(prev => [...prev, newTeam]);
+    const newRegisteredTeams = [...registeredTeams, newTeam];
+    setRegisteredTeams(newRegisteredTeams);
     
-    // Add game event
+    // Add game event with the new state
     addGameEvent({
       type: 'team_added',
       description: `New team "${formData.teamName}" was registered with ${formData.player1}, ${formData.player2}, ${formData.player3}, ${formData.player4}`
+    }, {
+      teams,
+      registeredTeams: newRegisteredTeams,
+      teamQueue
     });
     
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
@@ -130,13 +174,15 @@ export const useVolleyballState = () => {
       const court = teams[reportingCourtIndex];
       const score = `${gameScoreData.team1Score}-${gameScoreData.team2Score}`;
       
-      setTeams(prev => prev.map((court, index) => 
+      const newTeams = teams.map((court, index) => 
         index === reportingCourtIndex 
           ? { ...court, score: score }
           : court
-      ));
+      );
       
-      // Add game event
+      setTeams(newTeams);
+      
+      // Add game event with the new state
       addGameEvent({
         type: 'game_reported',
         description: `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`,
@@ -144,6 +190,10 @@ export const useVolleyballState = () => {
         teams: [court.team1, court.team2],
         score: score,
         netColor: court.netColor
+      }, {
+        teams: newTeams,
+        registeredTeams,
+        teamQueue
       });
       
       setGameScoreData({ team1Score: '', team2Score: '' });
@@ -176,21 +226,24 @@ export const useVolleyballState = () => {
   };
 
   const handleAddSelectedTeamsToQueue = () => {
-    const selectedTeamsArray = Array.from(selectedTeams);
-    const teamsToAdd = selectedTeamsArray.map(index => registeredTeams[index]);
-    setTeamQueue(prev => [...prev, ...teamsToAdd]);
+    const teamsToAdd = Array.from(selectedTeams).map(index => registeredTeams[index]);
+    const newTeamQueue = [...teamQueue, ...teamsToAdd];
+    setTeamQueue(newTeamQueue);
+    setSelectedTeams(new Set());
+    setIsAddToQueueModalOpen(false);
     
-    // Add game event for teams being queued
+    // Add game event with the new state
     if (teamsToAdd.length > 0) {
       addGameEvent({
         type: 'teams_queued',
         description: `Teams added to queue: ${teamsToAdd.map(team => team.name).join(', ')}`,
         teams: teamsToAdd
+      }, {
+        teams,
+        registeredTeams,
+        teamQueue: newTeamQueue
       });
     }
-    
-    setSelectedTeams(new Set());
-    setIsAddToQueueModalOpen(false);
   };
 
   const handleToggleTeamSelection = (teamIndex: number) => {
@@ -211,19 +264,25 @@ export const useVolleyballState = () => {
 
   const handleClearTeams = (courtIndex: number) => {
     const court = teams[courtIndex];
-    setTeams(prev => prev.map((court, index) => 
+    const newTeams = teams.map((court, index) => 
       index === courtIndex 
         ? { ...court, team1: { name: "No Team", players: ["", "", "", ""] }, team2: { name: "No Team", players: ["", "", "", ""] } }
         : court
-    ));
+    );
     
-    // Add game event
+    setTeams(newTeams);
+    
+    // Add game event with the new state
     addGameEvent({
       type: 'court_cleared',
       description: `${court.court} was cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
       courtNumber: court.court,
       teams: [court.team1, court.team2],
       netColor: court.netColor
+    }, {
+      teams: newTeams,
+      registeredTeams,
+      teamQueue
     });
   };
 
@@ -233,21 +292,28 @@ export const useVolleyballState = () => {
       const secondTeam = teamQueue[1];
       const court = teams[courtIndex];
       
-      setTeams(prev => prev.map((court, index) => 
+      const newTeams = teams.map((court, index) => 
         index === courtIndex 
           ? { ...court, team1: firstTeam, team2: secondTeam }
           : court
-      ));
+      );
       
-      setTeamQueue(prev => prev.slice(2));
+      const newTeamQueue = teamQueue.slice(2);
       
-      // Add game event
+      setTeams(newTeams);
+      setTeamQueue(newTeamQueue);
+      
+      // Add game event with the new state
       addGameEvent({
         type: 'teams_added',
         description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
         courtNumber: court.court,
         teams: [firstTeam, secondTeam],
         netColor: court.netColor
+      }, {
+        teams: newTeams,
+        registeredTeams,
+        teamQueue: newTeamQueue
       });
     }
   };
@@ -255,9 +321,9 @@ export const useVolleyballState = () => {
   const handleDeleteTeam = (teamIndex: number) => {
     const teamToDelete = registeredTeams[teamIndex];
     
-    setRegisteredTeams(prev => prev.filter((_, index) => index !== teamIndex));
-    setTeamQueue(prev => prev.filter(team => team.name !== teamToDelete.name));
-    setTeams(prev => prev.map(court => ({
+    const newRegisteredTeams = registeredTeams.filter((_, index) => index !== teamIndex);
+    const newTeamQueue = teamQueue.filter(team => team.name !== teamToDelete.name);
+    const newTeams = teams.map(court => ({
       ...court,
       team1: court.team1.name === teamToDelete.name 
         ? { name: "No Team", players: ["", "", "", ""] } 
@@ -265,12 +331,20 @@ export const useVolleyballState = () => {
       team2: court.team2.name === teamToDelete.name 
         ? { name: "No Team", players: ["", "", "", ""] } 
         : court.team2
-    })));
+    }));
     
-    // Add game event
+    setRegisteredTeams(newRegisteredTeams);
+    setTeamQueue(newTeamQueue);
+    setTeams(newTeams);
+    
+    // Add game event with the new state
     addGameEvent({
       type: 'team_deleted',
       description: `Team "${teamToDelete.name}" was deleted from the system`
+    }, {
+      teams: newTeams,
+      registeredTeams: newRegisteredTeams,
+      teamQueue: newTeamQueue
     });
     
     setDeletingTeamIndex(null);
@@ -328,6 +402,7 @@ export const useVolleyballState = () => {
     handleRemoveFromQueue,
     handleClearTeams,
     handleFillFromQueue,
-    handleDeleteTeam
+    handleDeleteTeam,
+    resetToEvent
   };
 }; 
