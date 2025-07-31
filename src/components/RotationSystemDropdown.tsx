@@ -13,9 +13,14 @@ interface RotationSystemDropdownProps {
 
 const rotationSystems: RotationSystem[] = [
   {
-    id: '3-court-competitive',
-    name: '3 Court Competitive',
+    id: '3-court-4v4',
+    name: '3 Court 4v4',
     description: '2 Challenger Courts + 1 Kings Court'
+  },
+  {
+    id: '4-court-mixed',
+    name: '4 Court Mixed',
+    description: 'Coming Soon - 4 Courts with Mixed Formats'
   }
 ];
 
@@ -67,27 +72,47 @@ export const RotationSystemDropdown: React.FC<RotationSystemDropdownProps> = ({
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
           <div className="py-1">
-            {rotationSystems.map((system) => (
-              <button
-                key={system.id}
-                onClick={() => handleSystemSelect(system.id)}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors duration-150 ${
-                  currentSystem === system.id ? 'bg-blue-50 border-r-2 border-blue-500' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{system.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">{system.description}</div>
+            {rotationSystems.map((system) => {
+              const isDisabled = system.id === '4-court-mixed';
+              const isSelected = currentSystem === system.id;
+              
+              return (
+                <button
+                  key={system.id}
+                  onClick={() => !isDisabled && handleSystemSelect(system.id)}
+                  disabled={isDisabled}
+                  className={`w-full text-left px-4 py-3 transition-colors duration-150 ${
+                    isDisabled 
+                      ? 'opacity-50 cursor-not-allowed bg-gray-100' 
+                      : isSelected 
+                        ? 'bg-blue-50 border-r-2 border-blue-500 hover:bg-blue-100' 
+                        : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-sm font-medium ${isDisabled ? 'text-gray-500' : 'text-gray-900'}`}>
+                        {system.name}
+                        {isDisabled && <span className="ml-2 text-xs text-gray-400">(Coming Soon)</span>}
+                      </div>
+                      <div className={`text-xs mt-1 ${isDisabled ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {system.description}
+                      </div>
+                    </div>
+                    {isSelected && !isDisabled && (
+                      <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                    {isDisabled && (
+                      <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    )}
                   </div>
-                  {currentSystem === system.id && (
-                    <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

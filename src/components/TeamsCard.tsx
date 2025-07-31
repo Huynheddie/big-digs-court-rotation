@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Team } from '../types';
 
 interface TeamsCardProps {
@@ -56,10 +57,29 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 px-2">
               {teams.map((team, index) => (
-                <div 
+                <motion.div 
                   key={team.name} 
                   onClick={() => onOpenTeamDetails(index)}
                   className="card-glass border-secondary-300 relative cursor-pointer group p-6"
+                  whileHover={{ 
+                    scale: 1.03,
+                    y: -8,
+                    transition: { 
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 20,
+                      duration: 0.6
+                    }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 300, 
+                    damping: 25,
+                    delay: index * 0.1
+                  }}
                   role="button"
                   tabIndex={0}
                   aria-label={`View details for ${team.name}`}
@@ -78,7 +98,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
                   </div>
                   <div className="space-y-4">
                     {team.players.map((player, playerIndex) => (
-                      <div key={playerIndex} className="flex items-center justify-between p-4 bg-secondary-50/60 rounded-xl border border-secondary-200 group-hover:bg-secondary-100/60 transition-colors duration-200">
+                      <div key={playerIndex} className="flex items-center justify-between p-4 bg-secondary-50/60 rounded-xl border border-secondary-200 transition-all duration-800 ease-out">
                         <span className="text-body font-medium text-secondary-800 truncate mr-4">{player}</span>
                         <span className="text-xs text-secondary-700 bg-secondary-200 px-4 py-2 rounded-lg font-medium flex-shrink-0">
                           P{playerIndex + 1}
@@ -88,8 +108,8 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
                   </div>
                   
                   {/* Hover indicator */}
-                  <div className="absolute inset-0 border-2 border-secondary-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                </div>
+                  <div className="absolute inset-0 border-2 border-secondary-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out pointer-events-none"></div>
+                </motion.div>
               ))}
             </div>
           )}

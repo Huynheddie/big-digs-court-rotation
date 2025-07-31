@@ -9,13 +9,19 @@
     border: none !important;
     outline: none !important;
   }
-
+  
   html {
     font-family: 'Inter', system-ui, sans-serif;
     scroll-behavior: smooth;
     border: none !important;
     outline: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
     box-sizing: border-box;
+    /* Remove any potential browser chrome artifacts */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
   
   body {
@@ -29,44 +35,115 @@
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box;
+    /* Remove any potential browser chrome artifacts */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
-
-  /* Target root element and viewport */
+  
   #root {
     border: none !important;
     outline: none !important;
     margin: 0 !important;
     padding: 0 !important;
   }
-
-  /* Remove any potential browser default borders */
+  
   div, section, main, aside, header, footer {
     border: none !important;
     outline: none !important;
   }
-
-  /* Focus styles for accessibility - exclude navbar and body/html */
+  
   *:focus:not(nav):not(nav *):not(body):not(html):not(button):not(input):not(select):not(textarea) {
-    outline: 2px solid #3b82f6 !important;
-    outline-offset: 2px !important;
+    outline: none !important;
+    border: none !important;
   }
-
-  /* Skip to main content for screen readers */
-  .skip-link {
-    position: absolute;
-    top: -40px;
-    left: 6px;
-    background: #3b82f6;
-    color: white;
-    padding: 8px;
-    text-decoration: none;
+  
+  /* Remove any potential scrollbar styling that might cause the blue line */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
     border-radius: 4px;
-    z-index: 1000;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  /* Remove any potential selection styling */
+  ::selection {
+    background: transparent;
+  }
+  
+  ::-moz-selection {
+    background: transparent;
+  }
+  
+  /* Target viewport and any browser chrome elements */
+  :root {
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* Remove any potential focus rings on the document */
+  html:focus-within {
+    outline: none !important;
+  }
+  
+  body:focus-within {
+    outline: none !important;
+  }
+  
+  /* Ensure no borders on the main container */
+  main {
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* Remove any potential browser default styling */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Additional aggressive rules to eliminate the blue line */
+  html, body, #root, div, section, main, aside, header, footer, nav {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Target any potential pseudo-elements */
+  html::before, html::after,
+  body::before, body::after,
+  #root::before, #root::after {
+    display: none !important;
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* Remove any potential browser chrome artifacts */
+  html, body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Allow text selection for content areas */
+  main, div, p, span, h1, h2, h3, h4, h5, h6 {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 
-  .skip-link:focus {
-    top: 6px;
-  }
+
 
   /* Improved button focus states */
   button:focus-visible,
@@ -79,8 +156,8 @@
   /* Smooth transitions for all interactive elements */
   * {
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition-duration: 800ms;
   }
 }
 
@@ -89,7 +166,7 @@
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 focus:bg-primary-700 active:bg-primary-800;
     @apply text-white font-medium py-3 px-6 rounded-xl;
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-300 ease-out;
     @apply shadow-soft hover:shadow-medium active:shadow-none;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
     min-height: 44px; /* Touch-friendly size */
@@ -98,7 +175,7 @@
   .btn-secondary {
     @apply bg-gray-100 hover:bg-gray-200 focus:bg-gray-200 active:bg-gray-300;
     @apply text-gray-700 font-medium py-3 px-6 rounded-xl;
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-300 ease-out;
     @apply shadow-soft hover:shadow-medium active:shadow-none;
     @apply focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
     min-height: 44px;
@@ -107,7 +184,7 @@
   .btn-success {
     @apply bg-success-600 hover:bg-success-700 focus:bg-success-700 active:bg-success-800;
     @apply text-white font-medium py-3 px-6 rounded-xl;
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-300 ease-out;
     @apply shadow-soft hover:shadow-medium active:shadow-none;
     @apply focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2;
     min-height: 44px;
@@ -116,7 +193,7 @@
   .btn-error {
     @apply bg-error-600 hover:bg-error-700 focus:bg-error-700 active:bg-error-800;
     @apply text-white font-medium py-3 px-6 rounded-xl;
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-300 ease-out;
     @apply shadow-soft hover:shadow-medium active:shadow-none;
     @apply focus:outline-none focus:ring-2 focus:ring-error-500 focus:ring-offset-2;
     min-height: 44px;
@@ -125,7 +202,7 @@
   .btn-warning {
     @apply bg-warning-600 hover:bg-warning-700 focus:bg-warning-700 active:bg-warning-800;
     @apply text-white font-medium py-3 px-6 rounded-xl;
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-all duration-300 ease-out;
     @apply shadow-soft hover:shadow-medium active:shadow-none;
     @apply focus:outline-none focus:ring-2 focus:ring-warning-500 focus:ring-offset-2;
     min-height: 44px;
@@ -135,7 +212,7 @@
   .card {
     @apply bg-white rounded-2xl shadow-soft;
     @apply border border-gray-100;
-    @apply transition-all duration-300 ease-in-out;
+    @apply transition-all duration-1000 ease-out;
     @apply hover:shadow-medium;
     @apply focus-within:shadow-medium;
   }
@@ -143,7 +220,7 @@
   .card-glass {
     @apply bg-white/80 backdrop-blur-sm rounded-2xl shadow-soft;
     @apply border border-white/20;
-    @apply transition-all duration-300 ease-in-out;
+    @apply transition-all duration-1000 ease-out;
     @apply hover:shadow-medium;
   }
 
@@ -175,28 +252,7 @@
     @apply animate-spin rounded-full border-2 border-gray-300 border-t-primary-600;
   }
 
-  /* Toast notifications */
-  .toast {
-    @apply fixed top-4 right-4 z-50 p-4 rounded-xl shadow-large;
-    @apply transform transition-all duration-300 ease-in-out;
-    @apply max-w-sm;
-  }
 
-  .toast-success {
-    @apply bg-success-50 border border-success-200 text-success-800;
-  }
-
-  .toast-error {
-    @apply bg-error-50 border border-error-200 text-error-800;
-  }
-
-  .toast-warning {
-    @apply bg-warning-50 border border-warning-200 text-warning-800;
-  }
-
-  .toast-info {
-    @apply bg-primary-50 border border-primary-200 text-primary-800;
-  }
 
   /* Typography utilities */
   .text-heading-1 {

@@ -30,7 +30,7 @@ export const useVolleyballState = () => {
   });
 
   // Selection states
-  const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
+  const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
   const [editingTeamIndex, setEditingTeamIndex] = useState<number | null>(null);
   const [reportingCourtIndex, setReportingCourtIndex] = useState<number | null>(null);
   const [deletingTeamIndex, setDeletingTeamIndex] = useState<number | null>(null);
@@ -78,7 +78,7 @@ export const useVolleyballState = () => {
     // Reset all modal and form states
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
     setGameScoreData({ team1Score: '', team2Score: '' });
-    setSelectedTeams(new Set());
+    setSelectedTeams([]);
     setEditingTeamIndex(null);
     setReportingCourtIndex(null);
     setDeletingTeamIndex(null);
@@ -105,6 +105,12 @@ export const useVolleyballState = () => {
   // Team management handlers
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that team name is not empty
+    if (!formData.teamName.trim()) {
+      return; // Don't proceed if team name is empty
+    }
+    
     const newTeam: Team = {
       name: formData.teamName,
       players: [formData.player1, formData.player2, formData.player3, formData.player4]
@@ -145,7 +151,7 @@ export const useVolleyballState = () => {
   const handleCancel = () => {
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
     setGameScoreData({ team1Score: '', team2Score: '' });
-    setSelectedTeams(new Set());
+    setSelectedTeams([]);
     setEditingTeamIndex(null);
     setReportingCourtIndex(null);
     setDeletingTeamIndex(null);
@@ -312,10 +318,10 @@ export const useVolleyballState = () => {
       return !inQueue && !onCourt;
     });
     
-    const teamsToAdd = Array.from(selectedTeams).map(index => availableTeams[index]);
+    const teamsToAdd = selectedTeams.map(index => availableTeams[index]);
     const newTeamQueue = [...teamQueue, ...teamsToAdd];
     setTeamQueue(newTeamQueue);
-    setSelectedTeams(new Set());
+    setSelectedTeams([]);
     setIsAddToQueueModalOpen(false);
     
     // Add game event with the new state
@@ -334,18 +340,16 @@ export const useVolleyballState = () => {
 
   const handleToggleTeamSelection = (teamIndex: number) => {
     setSelectedTeams(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(teamIndex)) {
-        newSet.delete(teamIndex);
+      if (prev.includes(teamIndex)) {
+        return prev.filter(index => index !== teamIndex);
       } else {
-        newSet.add(teamIndex);
+        return [...prev, teamIndex];
       }
-      return newSet;
     });
   };
 
   const handleSelectAllTeams = () => {
-    // Get available teams (not on courts and not in queue)
+    // Get available teams using the same logic as getAvailableTeams
     const availableTeams = registeredTeams.filter(team => {
       const inQueue = teamQueue.some(queueTeam => queueTeam.name === team.name);
       const onCourt = teams.some(court => 
@@ -354,8 +358,10 @@ export const useVolleyballState = () => {
       return !inQueue && !onCourt;
     });
     
-    // Select all available teams by creating a set with all indices from 0 to availableTeams.length - 1
-    const allIndices = new Set(Array.from({ length: availableTeams.length }, (_, i) => i));
+    // Select all available teams by creating an array with all indices from 0 to availableTeams.length - 1
+    const allIndices = Array.from({ length: availableTeams.length }, (_, i) => i);
+    console.log('handleSelectAllTeams: setting indices:', allIndices, 'for', availableTeams.length, 'teams');
+    console.log('Available teams:', availableTeams.map(t => t.name));
     setSelectedTeams(allIndices);
   };
 

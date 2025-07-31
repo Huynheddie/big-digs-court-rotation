@@ -174,15 +174,19 @@ export const CourtDetailsModal: React.FC<CourtDetailsModalProps> = ({
               
               {/* Team Selection */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500 mb-2">
-                  Select Team (Disabled)
+                <label className={`block text-sm font-medium mb-2 ${court.team1.name === "No Team" ? 'text-gray-700' : 'text-gray-500'}`}>
+                  Select Team {court.team1.name !== "No Team" ? '(Disabled - Team Assigned)' : ''}
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={selectedTeam1}
                     onChange={(e) => handleTeam1Change(e.target.value)}
-                    disabled
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    disabled={court.team1.name !== "No Team"}
+                    className={`flex-1 px-3 py-2 border border-gray-300 rounded-lg ${
+                      court.team1.name === "No Team" 
+                        ? 'bg-white text-gray-700 hover:border-gray-400' 
+                        : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
                     <option value="">Choose a team...</option>
                     {availableTeamsForTeam1.map((team) => (
@@ -230,15 +234,19 @@ export const CourtDetailsModal: React.FC<CourtDetailsModalProps> = ({
               
               {/* Team Selection */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-500 mb-2">
-                  Select Team (Disabled)
+                <label className={`block text-sm font-medium mb-2 ${court.team2.name === "No Team" ? 'text-gray-700' : 'text-gray-500'}`}>
+                  Select Team {court.team2.name !== "No Team" ? '(Disabled - Team Assigned)' : ''}
                 </label>
                 <div className="flex gap-2">
                   <select
                     value={selectedTeam2}
                     onChange={(e) => handleTeam2Change(e.target.value)}
-                    disabled
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
+                    disabled={court.team2.name !== "No Team"}
+                    className={`flex-1 px-3 py-2 border border-gray-300 rounded-lg ${
+                      court.team2.name === "No Team" 
+                        ? 'bg-white text-gray-700 hover:border-gray-400' 
+                        : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
                     <option value="">Choose a team...</option>
                     {availableTeamsForTeam2.map((team) => (

@@ -1,16 +1,17 @@
 import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import type { Team } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 interface AddToQueueModalProps {
   isOpen: boolean;
   availableTeams: Team[];
-  selectedTeams: Set<number>;
+  selectedTeams: number[];
   onToggleTeamSelection: (teamIndex: number) => void;
   onSelectAllTeams: () => void;
   onAddSelectedTeams: () => void;
   onCancel: () => void;
-  setSelectedTeams: (teams: Set<number>) => void;
+  setSelectedTeams: (teams: number[]) => void;
 }
 
 export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
@@ -26,8 +27,13 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   useEscapeKey(onCancel, isOpen);
 
   useEffect(() => {
-    console.log('Current selectedTeams:', Array.from(selectedTeams));
-  }, [selectedTeams]);
+    console.log('=== MODAL STATE DEBUG ===');
+    console.log('Current selectedTeams:', selectedTeams);
+    console.log('SelectedTeams length:', selectedTeams.length);
+    console.log('Available teams length:', availableTeams.length);
+    console.log('Available teams:', availableTeams.map(t => t.name));
+    console.log('========================');
+  }, [selectedTeams, availableTeams]);
 
   if (!isOpen) return null;
 
@@ -50,11 +56,12 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
         <div className="flex justify-end mb-6">
           <button
             onClick={() => {
-              // Select all teams by creating indices for all available teams
-              const allIndices = new Set(Array.from({ length: availableTeams.length }, (_, i) => i));
-              console.log('Select All clicked, setting indices:', Array.from(allIndices));
+              console.log('Select All clicked, setting all teams directly');
               console.log('Available teams count:', availableTeams.length);
-              // Clear current selection and set all teams as selected
+              console.log('Available teams:', availableTeams.map(t => t.name));
+              // Create indices for all available teams
+              const allIndices = Array.from({ length: availableTeams.length }, (_, i) => i);
+              console.log('Setting indices:', allIndices);
               setSelectedTeams(allIndices);
             }}
             disabled={availableTeams.length === 0}
@@ -81,17 +88,45 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-4">
               {availableTeams.map((team, index) => {
-                const isSelected = selectedTeams.has(index);
-                console.log(`Team ${team.name} (index ${index}): selected = ${isSelected}`);
+                const isSelected = selectedTeams.includes(index);
+                console.log(`Team ${team.name} (index ${index}): selected = ${isSelected}, selectedTeams length: ${selectedTeams.length}, selectedTeams contents:`, selectedTeams);
+                console.log(`Rendering team card for ${team.name} with isSelected = ${isSelected}`);
                 return (
-                  <div 
+                  <motion.div 
                     key={team.name} 
-                    className={`bg-white rounded-2xl p-6 transition-all duration-200 cursor-pointer shadow-medium ${
+                    className={`bg-white rounded-2xl p-6 cursor-pointer shadow-medium ${
                       isSelected
                         ? 'border-4 border-primary-700 bg-primary-100 shadow-large ring-4 ring-primary-300' 
-                        : 'border-2 border-gray-300 hover:border-primary-300'
+                        : 'border-2 border-gray-300'
                     }`}
-                    onClick={() => onToggleTeamSelection(index)}
+                    style={{
+                      border: isSelected ? '4px solid #1d4ed8' : '2px solid #d1d5db',
+                      backgroundColor: isSelected ? '#dbeafe' : 'white',
+                      boxShadow: isSelected ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }}
+                    whileHover={{ 
+                      scale: 1.03,
+                      y: -8,
+                      transition: { 
+                        type: "spring", 
+                        stiffness: 300, 
+                        damping: 20,
+                        duration: 0.6
+                      }
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      type: "spring", 
+                      stiffness: 300, 
+                      damping: 25,
+                      delay: index * 0.1
+                    }}
+                    onClick={() => {
+                      console.log(`Clicked on team ${team.name} (index ${index})`);
+                      onToggleTeamSelection(index);
+                    }}
                     role="button"
                     tabIndex={0}
                     aria-label={`Select ${team.name}`}
@@ -119,7 +154,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -128,7 +163,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
 
         <div className="flex justify-between items-center">
           <div className="text-body-small text-primary-700 font-medium">
-            {selectedTeams.size} team{selectedTeams.size !== 1 ? 's' : ''} selected
+            {selectedTeams.length} team{selectedTeams.length !== 1 ? 's' : ''} selected
           </div>
           <div className="flex space-x-4">
             <button
@@ -139,14 +174,14 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
             </button>
             <button
               onClick={onAddSelectedTeams}
-              disabled={selectedTeams.size === 0}
+              disabled={selectedTeams.length === 0}
               className={`bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-6 rounded-xl transition-colors duration-200 shadow-md ${
-                selectedTeams.size === 0
+                selectedTeams.length === 0
                   ? 'opacity-50 cursor-not-allowed'
                   : ''
               }`}
             >
-              Add {selectedTeams.size} Team{selectedTeams.size !== 1 ? 's' : ''} to Queue
+              Add {selectedTeams.length} Team{selectedTeams.length !== 1 ? 's' : ''} to Queue
             </button>
           </div>
         </div>

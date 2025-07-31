@@ -5,6 +5,7 @@ import { Accordion } from './components/Accordion';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { TeamsCard } from './components/TeamsCard';
+import { RotationSystemDropdown } from './components/RotationSystemDropdown';
 import { ToastProvider, useToast } from './components/Toast';
 import { AddTeamModal } from './components/modals/AddTeamModal';
 import { EditTeamModal } from './components/modals/EditTeamModal';
@@ -71,6 +72,7 @@ function AppContent() {
 
   // Page state
   const [currentPage, setCurrentPage] = useState<'courts' | 'teams'>('courts');
+  const [currentRotationSystem, setCurrentRotationSystem] = useState('3-court-4v4');
 
   const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
@@ -108,11 +110,11 @@ function AppContent() {
   };
 
   const handleAddSelectedTeamsToQueueWithToast = () => {
-    const selectedCount = selectedTeams.size;
+    const selectedCount = selectedTeams.length;
     handleAddSelectedTeamsToQueue();
     if (selectedCount > 0) {
       showToast({
-        type: 'success',
+        type: 'info',
         title: 'Teams Added to Queue!',
         message: `${selectedCount} team${selectedCount > 1 ? 's' : ''} added to the queue.`
       });
@@ -147,7 +149,7 @@ function AppContent() {
     const teamsAdded = teamQueue.length >= 2 ? 2 : teamQueue.length;
     handleFillFromQueue(courtIndex);
     showToast({
-      type: 'success',
+      type: 'info',
       title: 'Court Filled!',
       message: `Added ${teamsAdded} team${teamsAdded > 1 ? 's' : ''} to ${court.court}.`
     });
@@ -187,10 +189,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-      {/* Skip to main content link for accessibility */}
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
+
 
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -207,6 +206,27 @@ function AppContent() {
       {/* Navbar */}
       <Navbar currentPage={currentPage} onPageChange={setCurrentPage} />
 
+      {/* Date Display - Top Right */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 shadow-soft rounded-xl px-4 py-2">
+          <div className="text-caption text-gray-600 font-medium">
+            {new Date().toLocaleDateString('en-US', { 
+              weekday: 'short', 
+              month: 'short', 
+              day: 'numeric' 
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Rotation System Dropdown - Top Right Below Date */}
+      <div className="absolute top-20 right-4 z-50">
+        <RotationSystemDropdown
+          currentSystem={currentRotationSystem}
+          onSystemChange={setCurrentRotationSystem}
+        />
+      </div>
+
       {/* Sidebar */}
       <Sidebar 
         gameEvents={gameEvents}
@@ -217,7 +237,7 @@ function AppContent() {
       {/* Main Content */}
       <main 
         id="main-content"
-        className={`transition-all duration-300 relative z-10 ml-16 pt-16`}
+        className={`transition-all duration-300 relative z-10 ml-16 pt-24`}
         role="main"
       >
         <div className="container-responsive py-8">
@@ -245,7 +265,7 @@ function AppContent() {
                 
                 {/* Bottom Row - Kings Court */}
                 <div className="flex justify-center">
-                  <div className="w-full max-w-md mx-auto lg:max-w-md">
+                  <div className="w-full max-w-2xl mx-auto lg:max-w-2xl">
                     {teams.slice(2, 3).map((court, courtIndex) => (
                       <CourtCard
                         key={court.court}

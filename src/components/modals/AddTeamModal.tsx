@@ -23,6 +23,13 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
 
   const isTeamNameValid = formData.teamName.length <= 50;
   const teamNameCharCount = formData.teamName.length;
+  
+  // Check if all fields have input
+  const allFieldsFilled = formData.teamName.trim() && 
+                         formData.player1.trim() && 
+                         formData.player2.trim() && 
+                         formData.player3.trim() && 
+                         formData.player4.trim();
 
   return (
     <div 
@@ -135,7 +142,7 @@ export const AddTeamModal: React.FC<AddTeamModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={!isTeamNameValid || !formData.teamName.trim()}
+              disabled={!isTeamNameValid || !allFieldsFilled}
               className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Add Team

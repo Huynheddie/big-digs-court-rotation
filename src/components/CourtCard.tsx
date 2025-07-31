@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Court } from '../types';
 import {
   getCourtBackgroundClass,
@@ -38,8 +39,27 @@ export const CourtCard: React.FC<CourtCardProps> = ({
                           (isKingsCourt && hasOneTeam && teamQueueLength >= 1);
 
   return (
-    <div 
+    <motion.div 
       className={`card p-6 cursor-pointer group ${getCourtBackgroundClass(court.netColor)} min-h-[400px] w-full`}
+      whileHover={{ 
+        scale: 1.03,
+        y: -8,
+        transition: { 
+          type: "spring", 
+          stiffness: 300, 
+          damping: 20,
+          duration: 0.6
+        }
+      }}
+      whileTap={{ scale: 0.98 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 25,
+        delay: courtIndex * 0.1
+      }}
       onClick={() => onOpenCourtDetails(courtIndex)}
       role="button"
       tabIndex={0}
@@ -79,7 +99,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({
             {court.team1.players.map((player, index) => (
               <div 
                 key={index} 
-                className={`flex items-center justify-between p-3 bg-white/90 backdrop-blur-sm rounded-xl border shadow-sm ${getTeam1BorderClass(court.netColor)} group-hover:shadow-md transition-shadow duration-200`}
+                className={`flex items-center justify-between p-3 bg-white/90 backdrop-blur-sm rounded-xl border shadow-sm ${getTeam1BorderClass(court.netColor)} group-hover:shadow-md transition-all duration-1000 ease-out`}
               >
                 <span className="text-body-small font-medium text-gray-700 truncate">{player}</span>
                 <span className={`text-xs px-2 py-1 rounded-lg font-medium ${getTeam1AccentClass(court.netColor)}`}>
@@ -99,7 +119,7 @@ export const CourtCard: React.FC<CourtCardProps> = ({
             {court.team2.players.map((player, index) => (
               <div 
                 key={index} 
-                className={`flex items-center justify-between p-3 bg-white/90 backdrop-blur-sm rounded-xl border shadow-sm ${getTeam2BorderClass(court.netColor)} group-hover:shadow-md transition-shadow duration-200`}
+                className={`flex items-center justify-between p-3 bg-white/90 backdrop-blur-sm rounded-xl border shadow-sm ${getTeam2BorderClass(court.netColor)} group-hover:shadow-md transition-all duration-1000 ease-out`}
               >
                 <span className="text-body-small font-medium text-gray-700 truncate">{player}</span>
                 <span className={`text-xs px-2 py-1 rounded-lg font-medium ${getTeam2AccentClass(court.netColor)}`}>
@@ -152,6 +172,6 @@ export const CourtCard: React.FC<CourtCardProps> = ({
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }; 

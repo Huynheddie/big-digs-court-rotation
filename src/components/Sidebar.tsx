@@ -29,14 +29,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside 
-      className={`fixed left-0 top-16 h-[calc(100vh-4rem)] bg-gradient-to-b from-secondary-300 via-secondary-200 to-secondary-100 border-r border-secondary-300 transition-all duration-300 ease-in-out flex-shrink-0 shadow-large z-20 ${
+      className={`fixed left-0 top-0 h-screen bg-gradient-to-b from-secondary-300 via-secondary-200 to-secondary-100 border-r border-secondary-300 transition-all duration-300 ease-in-out flex-shrink-0 shadow-large z-20 ${
         isExpanded ? 'w-80' : 'w-16'
-      }`}
+      } ${!isExpanded ? 'cursor-pointer' : ''}`}
       role="complementary"
       aria-label="Game tracker sidebar"
+      onClick={!isExpanded ? handleToggle : undefined}
     >
       {/* Header/Toggle Button */}
-      <div className={`h-16 flex items-center ${!isExpanded ? 'pb-8' : ''}`}>
+      <div className={`h-16 flex items-center ${!isExpanded ? 'pb-8' : ''} bg-secondary-400/30 border-b-2 border-secondary-400/50 shadow-sm`}>
         <div className="flex items-center w-full h-full">
           {isExpanded ? (
             <div className="flex items-center justify-between w-full px-4 h-full">
@@ -47,7 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </span>
               </div>
               <button
-                onClick={handleToggle}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggle();
+                }}
                 className="text-secondary-800 hover:bg-secondary-600/20 p-2 rounded-lg transition-colors duration-200"
                 title="Collapse sidebar"
                 aria-label="Collapse sidebar"
@@ -58,10 +62,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center space-y-3 pt-16 w-full px-2">
+            <div className="flex flex-col items-center justify-center space-y-3 pt-20 w-full px-4">
               <span className="text-xs text-secondary-800 font-medium text-center">📊 Tracker</span>
               <button
-                onClick={handleToggle}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggle();
+                }}
                 className="text-secondary-800 hover:bg-secondary-600/20 p-2 rounded-lg transition-colors duration-200"
                 title="Expand sidebar"
                 aria-label="Expand sidebar"
@@ -76,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Content */}
-      <div className={`transition-opacity duration-300 h-[calc(100vh-8rem)] ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`transition-opacity duration-300 h-[calc(100vh-4rem)] ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'} pt-2`}>
         <GameTracker gameEvents={gameEvents} onResetToEvent={onResetToEvent} currentState={currentState} />
       </div>
 
