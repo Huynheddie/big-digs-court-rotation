@@ -113,12 +113,12 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
       aria-labelledby="modal-title"
     >
       <div 
-        className="card p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in"
+        className="bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-2xl p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 id="modal-title" className="text-heading-2 text-gray-900">
+          <h2 id="modal-title" className="text-heading-2 text-secondary-900">
             {isEditing ? 'Edit Team' : 'Team Details'}
           </h2>
           <button
@@ -132,7 +132,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
 
         {/* Team Information Section */}
         <div className="mb-8">
-          <h3 className="text-heading-4 text-gray-900 mb-6">Team Information</h3>
+          <h3 className="text-heading-4 text-secondary-900 mb-6">Team Information</h3>
           
           {isEditing ? (
             <div className="space-y-6">
@@ -199,17 +199,17 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
           ) : (
             <div className="space-y-6">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Team Name</h4>
-                <p className="text-body-large font-semibold text-gray-900 break-words">{team.name}</p>
+                <h4 className="text-sm font-medium text-secondary-700 mb-2">Team Name</h4>
+                <p className="text-body-large font-semibold text-secondary-900 break-words">{team.name}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Players</h4>
+                <h4 className="text-sm font-medium text-secondary-700 mb-3">Players</h4>
                 <div className="space-y-3">
                   {team.players.map((player, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200">
-                      <span className="text-body font-medium text-gray-800">{player || `Player ${index + 1} (Not set)`}</span>
-                      <span className="text-xs text-gray-600 bg-gray-200 px-3 py-1 rounded-lg font-medium">
+                    <div key={index} className="flex items-center justify-between p-3 bg-secondary-50/60 rounded-xl border border-secondary-200">
+                      <span className="text-body font-medium text-secondary-800">{player || `Player ${index + 1} (Not set)`}</span>
+                      <span className="text-xs text-secondary-700 bg-secondary-200 px-3 py-1 rounded-lg font-medium">
                         P{index + 1}
                       </span>
                     </div>
@@ -237,7 +237,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
 
         {/* Win-Loss Record Section */}
         <div className="mb-8">
-          <h3 className="text-heading-4 text-gray-900 mb-6">Record</h3>
+          <h3 className="text-heading-4 text-secondary-900 mb-6">Record</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-success-50 rounded-xl p-4 text-center border border-success-200">
               <div className="text-3xl font-bold text-success-800">{wins}</div>
@@ -256,7 +256,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
 
         {/* Game History Section */}
         <div>
-          <h3 className="text-heading-4 text-gray-900 mb-6">Game History</h3>
+          <h3 className="text-heading-4 text-secondary-900 mb-6">Game History</h3>
           {teamGameEvents.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <div className="text-4xl mb-4">📝</div>
