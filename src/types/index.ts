@@ -47,6 +47,7 @@ export interface GameEvent {
     teams: Court[];
     registeredTeams: Team[];
     teamQueue: Team[];
+    kingsCourtQueue: Team[];
   };
 }
 

@@ -9,10 +9,26 @@ interface GameTrackerProps {
     registeredTeams: Team[];
     teamQueue: Team[];
   };
+  expandEventId?: string;
+  onExpandEventIdCleared?: () => void;
 }
 
-export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToEvent, currentState }) => {
+export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToEvent, currentState, expandEventId, onExpandEventIdCleared }) => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+
+  // Effect to expand a specific event when expandEventId is provided
+  React.useEffect(() => {
+    if (expandEventId) {
+      setExpandedEvents(prev => {
+        const newSet = new Set([...prev, expandEventId]);
+        return newSet;
+      });
+      // Clear the expandEventId after a short delay to allow for future expansions
+      setTimeout(() => {
+        onExpandEventIdCleared?.();
+      }, 500); // Increased delay to ensure expansion is visible
+    }
+  }, [expandEventId, onExpandEventIdCleared]);
 
   const getEventIcon = (type: GameEvent['type']) => {
     switch (type) {
@@ -49,13 +65,35 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
   };
 
   const getEventColorClasses = (event: GameEvent) => {
-    // Game victories should be green
-    if (event.type === 'game_reported' && event.winner && event.loser) {
-      return 'text-green-600 bg-green-50 border-green-200';
+    switch (event.type) {
+      case 'game_reported':
+        // Game victories - green for success
+        return 'text-green-600 bg-green-50 border-green-200';
+      
+      case 'court_cleared':
+        // Court clearing - red for removal/clear action
+        return 'text-red-600 bg-red-50 border-red-200';
+      
+      case 'team_deleted':
+        // Team deletion - red for removal action
+        return 'text-red-600 bg-red-50 border-red-200';
+      
+      case 'teams_added':
+        // Teams added to courts or queues - blue for join/fill action
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+      
+      case 'teams_queued':
+        // Teams added to queue - blue for join action
+        return 'text-blue-600 bg-blue-50 border-blue-200';
+      
+      case 'team_added':
+        // New team registration - green for success
+        return 'text-green-600 bg-green-50 border-green-200';
+      
+      default:
+        // Fallback to neutral grey
+        return 'text-gray-600 bg-gray-50 border-gray-200';
     }
-    
-    // Use net color for other events
-    return getNetColorClasses(event.netColor);
   };
 
   const formatTimestamp = (timestamp: Date) => {
@@ -113,38 +151,33 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
   };
 
   const getDetailedDescription = (event: GameEvent) => {
+    // Use the actual event description that contains the enhanced details
+    if (event.description) {
+      return event.description;
+    }
+    
+    // Fallback descriptions if no description is provided
     switch (event.type) {
       case 'court_cleared':
         return `${event.courtNumber || 'Unknown Court'} was cleared.`;
       case 'teams_added':
         if (event.teams && event.teams.length === 1) {
-          // Single team added (Kings Court scenario)
-          return event.description || `A team was added to ${event.courtNumber || 'a court'}.`;
+          return `A team was added to ${event.courtNumber || 'a court'}.`;
         } else {
-          // Multiple teams added (Challenger Court scenario)
           return `Two new teams were added to ${event.courtNumber || 'a court'}.`;
         }
       case 'game_reported':
-        // Check if this is a Kings Court game and has winner/loser info
-        if (event.courtNumber === 'Kings Court' && event.winner && event.loser) {
-          // Check if the description indicates a second consecutive win
-          if (event.description.includes('second consecutive game')) {
-            return `<em>${event.winner.name}</em> wins their second consecutive game and must now leave the court.`;
-          } else {
-            return `<em>${event.winner.name}</em> stays on the court, <em>${event.loser.name}</em> leaves.`;
-          }
-        }
         return `A game on ${event.courtNumber || 'a court'} has been completed.`;
       case 'team_deleted':
-        const teamName = event.description.split('"')[1] || 'Unknown Team';
+        const teamName = event.description?.split('"')[1] || 'Unknown Team';
         return `Team "${teamName}" has been permanently removed from the system.`;
       case 'team_added':
-        const newTeamName = event.description.split('"')[1] || 'Unknown Team';
+        const newTeamName = event.description?.split('"')[1] || 'Unknown Team';
         return `A new team "${newTeamName}" has been registered in the system.`;
       case 'teams_queued':
         return `Teams were added to the waiting queue.`;
       default:
-        return event.description || 'An event occurred in the system.';
+        return 'An event occurred in the system.';
     }
   };
 

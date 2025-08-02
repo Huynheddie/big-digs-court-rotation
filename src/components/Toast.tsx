@@ -11,6 +11,8 @@ interface ToastProps {
   onClose: () => void;
   id: string;
   index: number;
+  eventId?: string;
+  onClick?: () => void;
 }
 
 export const Toast: React.FC<ToastProps> = ({
@@ -20,7 +22,9 @@ export const Toast: React.FC<ToastProps> = ({
   duration = 5000,
   onClose,
   id,
-  index
+  index,
+  eventId,
+  onClick
 }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -70,11 +74,11 @@ export const Toast: React.FC<ToastProps> = ({
       message: 'text-yellow-700'
     },
     info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      icon: 'text-blue-600',
-      title: 'text-blue-900',
-      message: 'text-blue-700'
+      bg: 'bg-gray-50',
+      border: 'border-gray-200',
+      icon: 'text-gray-600',
+      title: 'text-gray-900',
+      message: 'text-gray-700'
     }
   };
 
@@ -111,10 +115,15 @@ export const Toast: React.FC<ToastProps> = ({
         zIndex: 1000 - index,
         transformOrigin: "top right"
       }}
-      className={`${styles.bg} ${styles.border} border rounded-2xl shadow-lg backdrop-blur-sm max-w-sm w-full`}
+      className={`${styles.bg} ${styles.border} border rounded-2xl shadow-lg backdrop-blur-sm max-w-sm w-full ${onClick ? 'cursor-pointer' : ''}`}
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
+                onClick={(e) => {
+            if (onClick) {
+              onClick();
+            }
+          }}
     >
       <div className="p-4">
         <div className="flex items-start space-x-3">

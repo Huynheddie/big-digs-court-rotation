@@ -11,28 +11,35 @@ import { ToastProvider, useToast } from './components/Toast';
 import { AddTeamModal } from './components/modals/AddTeamModal';
 import { EditTeamModal } from './components/modals/EditTeamModal';
 import { AddToQueueModal } from './components/modals/AddToQueueModal';
+import { AddToKingsCourtQueueModal } from './components/modals/AddToKingsCourtQueueModal';
 import { DeleteTeamModal } from './components/modals/DeleteTeamModal';
 import { ReportGameModal } from './components/modals/ReportGameModal';
 import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
 import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
+import { KingsCourtQueueCard } from './components/KingsCourtQueueCard';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 
 function AppContent() {
   const { showToast } = useToast();
+  const [expandEventId, setExpandEventId] = useState<string | undefined>(undefined);
   const {
     // State
     teams,
     registeredTeams,
     teamQueue,
+    kingsCourtQueue,
     gameEvents,
+    lastCreatedEventId,
     isModalOpen,
     isEditModalOpen,
     isReportGameModalOpen,
     isAddToQueueModalOpen,
+    isAddToKingsCourtQueueModalOpen,
     teamDetailsModalOpen,
     formData,
     gameScoreData,
     selectedTeams,
+    selectedTeamsForKingsCourt,
     reportingCourtIndex,
     deletingTeamIndex,
     selectedTeamForDetails,
@@ -41,8 +48,11 @@ function AppContent() {
 
     // Setters
     setIsAddToQueueModalOpen,
+    setIsAddToKingsCourtQueueModalOpen,
     setSelectedTeams,
+    setSelectedTeamsForKingsCourt,
     setDeletingTeamIndex,
+    setLastCreatedEventId,
 
     // Handlers
     handleInputChange,
@@ -58,6 +68,10 @@ function AppContent() {
     handleToggleTeamSelection,
     handleSelectAllTeams,
     handleRemoveFromQueue,
+    handleAddSelectedTeamsToKingsCourtQueue,
+    handleToggleTeamSelectionForKingsCourt,
+    handleSelectAllTeamsForKingsCourt,
+    handleRemoveFromKingsCourtQueue,
     handleClearTeams,
     handleFillFromQueue,
     handleDeleteTeam,
@@ -75,17 +89,22 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState<'courts' | 'teams'>('courts');
   const [currentRotationSystem, setCurrentRotationSystem] = useState('3-court-4v4');
 
-  const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams);
+  const availableTeams = getAvailableTeams(registeredTeams, teamQueue, teams, kingsCourtQueue);
   const teamToDelete = deletingTeamIndex !== null ? registeredTeams[deletingTeamIndex] : null;
   const isTeamOnCourtForDelete = teamToDelete ? isTeamOnCourt(teamToDelete.name, teams) : false;
 
   // Enhanced handlers with toast notifications
   const handleSubmitWithToast = (e: React.FormEvent) => {
-    handleSubmit(e);
+    const newEventId = handleSubmit(e);
     showToast({
       type: 'success',
       title: 'Team Added!',
-      message: `Successfully added "${formData.teamName}" to the system.`
+      message: `Successfully added "${formData.teamName}" to the system. Click to view details.`,
+      onClick: () => {
+        if (newEventId) {
+          setExpandEventId(newEventId);
+        }
+      }
     });
   };
 
@@ -100,24 +119,37 @@ function AppContent() {
 
   const handleReportGameSubmitWithToast = (e: React.FormEvent) => {
     const court = reportingCourtIndex !== null ? teams[reportingCourtIndex] : null;
-    handleReportGameSubmit(e);
+    
+    const newEventId = handleReportGameSubmit(e);
+    
+    // Don't automatically expand the sidebar - only expand when toast is clicked
     if (court) {
       showToast({
         type: 'success',
         title: 'Game Reported!',
-        message: `Game between ${court.team1.name} and ${court.team2.name} has been recorded.`
+        message: `Game between ${court.team1.name} and ${court.team2.name} has been recorded. Click to view details.`,
+        onClick: () => {
+          if (newEventId) {
+            setExpandEventId(newEventId);
+          }
+        }
       });
     }
   };
 
   const handleAddSelectedTeamsToQueueWithToast = () => {
     const selectedCount = selectedTeams.length;
-    handleAddSelectedTeamsToQueue();
+    const newEventId = handleAddSelectedTeamsToQueue();
     if (selectedCount > 0) {
       showToast({
         type: 'info',
         title: 'Teams Added to Queue!',
-        message: `${selectedCount} team${selectedCount > 1 ? 's' : ''} added to the queue.`
+        message: `${selectedCount} team${selectedCount > 1 ? 's' : ''} added to the queue. Click to view details.`,
+        onClick: () => {
+          if (newEventId) {
+            setExpandEventId(newEventId);
+          }
+        }
       });
     }
   };
@@ -132,39 +164,101 @@ function AppContent() {
     });
   };
 
+  const handleAddToKingsCourtQueueWithToast = () => {
+    setIsAddToKingsCourtQueueModalOpen(true);
+  };
+
+  const handleAddSelectedTeamsToKingsCourtQueueWithToast = () => {
+    const selectedCount = selectedTeamsForKingsCourt.length;
+    const newEventId = handleAddSelectedTeamsToKingsCourtQueue();
+    if (selectedCount > 0) {
+      showToast({
+        type: 'info',
+        title: 'Teams Added to Kings Court Queue!',
+        message: `${selectedCount} team${selectedCount > 1 ? 's' : ''} added to the Kings Court queue. Click to view details.`,
+        onClick: () => {
+          if (newEventId) {
+            setExpandEventId(newEventId);
+          }
+        }
+      });
+    }
+  };
+
+  const handleRemoveFromKingsCourtQueueWithToast = (index: number) => {
+    const teamName = kingsCourtQueue[index]?.name || 'Team';
+    handleRemoveFromKingsCourtQueue(index);
+    showToast({
+      type: 'info',
+      title: 'Team Removed',
+      message: `"${teamName}" has been removed from the Kings Court queue.`
+    });
+  };
+
   const handleClearTeamsWithToast = (courtIndex: number) => {
     const court = teams[courtIndex];
     const teamNames = [court.team1.name, court.team2.name].filter(name => name !== 'No Team');
-    handleClearTeams(courtIndex);
+    const newEventId = handleClearTeams(courtIndex);
     if (teamNames.length > 0) {
       showToast({
         type: 'warning',
         title: 'Teams Cleared',
-        message: `Cleared teams from ${court.court}.`
+        message: `Cleared teams from ${court.court}. Click to view details.`,
+        onClick: () => {
+          if (newEventId) {
+            setExpandEventId(newEventId);
+          }
+        }
       });
     }
   };
 
   const handleFillFromQueueWithToast = (courtIndex: number) => {
     const court = teams[courtIndex];
-    const teamsAdded = teamQueue.length >= 2 ? 2 : teamQueue.length;
-    handleFillFromQueue(courtIndex);
-    showToast({
-      type: 'info',
-      title: 'Court Filled!',
-      message: `Added ${teamsAdded} team${teamsAdded > 1 ? 's' : ''} to ${court.court}.`
-    });
+    const isKingsCourt = court.court === "Kings Court";
+    
+    // Call the fill function and capture the event ID
+    const newEventId = handleFillFromQueue(courtIndex);
+    
+    // Check if teams were actually added by checking if an event ID was returned
+    if (newEventId) {
+      // Teams were successfully added - determine how many based on court state
+      const hasTeam1 = court.team1.name !== "No Team";
+      const hasTeam2 = court.team2.name !== "No Team";
+      const teamsNeeded = (!hasTeam1 ? 1 : 0) + (!hasTeam2 ? 1 : 0);
+      
+      showToast({
+        type: 'info',
+        title: 'Court Filled!',
+        message: `Added ${teamsNeeded} team${teamsNeeded > 1 ? 's' : ''} to ${court.court}. Click to view details.`,
+        onClick: () => {
+          setExpandEventId(newEventId);
+        }
+      });
+    } else {
+      const queueName = isKingsCourt ? 'Kings Court or general' : 'main';
+      showToast({
+        type: 'warning',
+        title: 'No Teams Available',
+        message: `No teams available in ${queueName} queue to fill ${court.court}.`
+      });
+    }
   };
 
   const handleDeleteConfirmWithToast = () => {
     if (deletingTeamIndex !== null) {
       const teamName = registeredTeams[deletingTeamIndex]?.name || 'Team';
-      handleDeleteTeam(deletingTeamIndex);
+      const newEventId = handleDeleteTeam(deletingTeamIndex);
       setDeletingTeamIndex(null);
       showToast({
         type: 'error',
         title: 'Team Deleted',
-        message: `"${teamName}" has been permanently deleted.`
+        message: `"${teamName}" has been permanently deleted. Click to view details.`,
+        onClick: () => {
+          if (newEventId) {
+            setExpandEventId(newEventId);
+          }
+        }
       });
     }
   };
@@ -233,6 +327,10 @@ function AppContent() {
         gameEvents={gameEvents}
         onResetToEvent={handleResetToEventWithToast}
         currentState={{ teams, registeredTeams, teamQueue }}
+        expandEventId={expandEventId}
+        onExpandEventIdCleared={() => {
+          setExpandEventId(undefined);
+        }}
       />
       
       {/* Main Content */}
@@ -269,9 +367,10 @@ function AppContent() {
                   ))}
                 </div>
                 
-                {/* Bottom Row - Kings Court */}
-                <div className="flex justify-center">
-                  <div className="w-full max-w-2xl mx-auto lg:max-w-2xl">
+                {/* Bottom Row - Kings Court with Queue */}
+                <div className="flex flex-col lg:flex-row justify-center gap-6 lg:gap-8">
+                  {/* Kings Court */}
+                  <div className="flex-1 max-w-md mx-auto lg:max-w-none">
                     {teams.slice(2, 3).map((court, courtIndex) => (
                       <CourtCard
                         key={court.court}
@@ -282,8 +381,18 @@ function AppContent() {
                         onFillFromQueue={handleFillFromQueueWithToast}
                         onOpenCourtDetails={handleOpenCourtDetails}
                         teamQueueLength={teamQueue.length}
+                        kingsCourtQueueLength={kingsCourtQueue.length}
                       />
                     ))}
+                  </div>
+                  
+                  {/* Kings Court Queue Card */}
+                  <div className="w-full lg:w-1/2 max-w-sm mx-auto lg:max-w-none">
+                    <KingsCourtQueueCard
+                      teamQueue={kingsCourtQueue}
+                      onAddToQueue={handleAddToKingsCourtQueueWithToast}
+                      onRemoveFromQueue={handleRemoveFromKingsCourtQueueWithToast}
+                    />
                   </div>
                 </div>
               </div>
@@ -390,6 +499,17 @@ function AppContent() {
         onAddSelectedTeams={handleAddSelectedTeamsToQueueWithToast}
         onCancel={handleCancel}
         setSelectedTeams={setSelectedTeams}
+      />
+
+      <AddToKingsCourtQueueModal
+        isOpen={isAddToKingsCourtQueueModalOpen}
+        availableTeams={availableTeams}
+        selectedTeams={selectedTeamsForKingsCourt}
+        onToggleTeamSelection={handleToggleTeamSelectionForKingsCourt}
+        onSelectAllTeams={handleSelectAllTeamsForKingsCourt}
+        onAddSelectedTeams={handleAddSelectedTeamsToKingsCourtQueueWithToast}
+        onCancel={handleCancel}
+        setSelectedTeams={setSelectedTeamsForKingsCourt}
       />
 
       <DeleteTeamModal

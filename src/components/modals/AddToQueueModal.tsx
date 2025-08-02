@@ -26,14 +26,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
 }) => {
   useEscapeKey(onCancel, isOpen);
 
-  useEffect(() => {
-    console.log('=== MODAL STATE DEBUG ===');
-    console.log('Current selectedTeams:', selectedTeams);
-    console.log('SelectedTeams length:', selectedTeams.length);
-    console.log('Available teams length:', availableTeams.length);
-    console.log('Available teams:', availableTeams.map(t => t.name));
-    console.log('========================');
-  }, [selectedTeams, availableTeams]);
+
 
   if (!isOpen) return null;
 
@@ -70,12 +63,8 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
         <div className="flex justify-end mb-6">
           <button
             onClick={() => {
-              console.log('Select All clicked, setting all teams directly');
-              console.log('Available teams count:', availableTeams.length);
-              console.log('Available teams:', availableTeams.map(t => t.name));
               // Create indices for all available teams
               const allIndices = Array.from({ length: availableTeams.length }, (_, i) => i);
-              console.log('Setting indices:', allIndices);
               setSelectedTeams(allIndices);
             }}
             disabled={availableTeams.length === 0}
@@ -103,8 +92,6 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 py-4">
               {availableTeams.map((team, index) => {
                 const isSelected = selectedTeams.includes(index);
-                console.log(`Team ${team.name} (index ${index}): selected = ${isSelected}, selectedTeams length: ${selectedTeams.length}, selectedTeams contents:`, selectedTeams);
-                console.log(`Rendering team card for ${team.name} with isSelected = ${isSelected}`);
                 return (
                   <motion.div 
                     key={team.name} 
@@ -137,7 +124,6 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
                       damping: 25
                     }}
                     onClick={() => {
-                      console.log(`Clicked on team ${team.name} (index ${index})`);
                       onToggleTeamSelection(index);
                     }}
                     role="button"

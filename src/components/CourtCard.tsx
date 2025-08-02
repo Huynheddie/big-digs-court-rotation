@@ -20,6 +20,7 @@ interface CourtCardProps {
   onFillFromQueue: (courtIndex: number) => void;
   onOpenCourtDetails: (courtIndex: number) => void;
   teamQueueLength: number;
+  kingsCourtQueueLength?: number;
 }
 
 export const CourtCard: React.FC<CourtCardProps> = ({
@@ -29,14 +30,15 @@ export const CourtCard: React.FC<CourtCardProps> = ({
   onClearTeams,
   onFillFromQueue,
   onOpenCourtDetails,
-  teamQueueLength
+  teamQueueLength,
+  kingsCourtQueueLength = 0
 }) => {
   const isKingsCourt = court.court === "Kings Court";
   const hasBothTeams = court.team1.name !== "No Team" && court.team2.name !== "No Team";
   const hasOneTeam = (court.team1.name !== "No Team" && court.team2.name === "No Team") || 
                      (court.team1.name === "No Team" && court.team2.name !== "No Team");
   const canFillFromQueue = (court.team1.name === "No Team" && court.team2.name === "No Team" && teamQueueLength >= 2) || 
-                          (isKingsCourt && hasOneTeam && teamQueueLength >= 1);
+                          (isKingsCourt && hasOneTeam && (teamQueueLength >= 1 || kingsCourtQueueLength >= 1));
 
   return (
     <motion.div 

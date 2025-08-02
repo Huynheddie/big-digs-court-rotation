@@ -40,10 +40,11 @@ export const isTeamInQueue = (teamName: string, queue: Team[]): boolean => {
   return queue.some(team => team.name === teamName);
 };
 
-export const getAvailableTeams = (registeredTeams: Team[], queue: Team[], courts: Court[]): Team[] => {
+export const getAvailableTeams = (registeredTeams: Team[], queue: Team[], courts: Court[], kingsCourtQueue?: Team[]): Team[] => {
   return registeredTeams.filter(team => {
     const inQueue = isTeamInQueue(team.name, queue);
+    const inKingsCourtQueue = kingsCourtQueue ? isTeamInQueue(team.name, kingsCourtQueue) : false;
     const onCourt = isTeamOnCourt(team.name, courts);
-    return !inQueue && !onCourt;
+    return !inQueue && !inKingsCourtQueue && !onCourt;
   });
 }; 

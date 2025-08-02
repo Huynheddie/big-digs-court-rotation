@@ -11,13 +11,17 @@ interface SidebarProps {
     registeredTeams: Team[];
     teamQueue: Team[];
   };
+  expandEventId?: string;
+  onExpandEventIdCleared?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   gameEvents,
   onResetToEvent,
   onToggle,
-  currentState
+  currentState,
+  expandEventId,
+  onExpandEventIdCleared
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -26,6 +30,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setIsExpanded(newExpandedState);
     onToggle?.(newExpandedState);
   };
+
+  // Effect to expand sidebar when expandEventId is provided
+  React.useEffect(() => {
+    if (expandEventId && !isExpanded) {
+      setIsExpanded(true);
+      onToggle?.(true);
+    }
+  }, [expandEventId, isExpanded, onToggle]);
 
   return (
     <aside 
@@ -84,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Content */}
       <div className={`transition-opacity duration-300 h-[calc(100vh-4rem)] ${isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'} pt-2`}>
-        <GameTracker gameEvents={gameEvents} onResetToEvent={onResetToEvent} currentState={currentState} />
+        <GameTracker gameEvents={gameEvents} onResetToEvent={onResetToEvent} currentState={currentState} expandEventId={expandEventId} onExpandEventIdCleared={onExpandEventIdCleared} />
       </div>
 
       {/* Collapsed State Indicator */}

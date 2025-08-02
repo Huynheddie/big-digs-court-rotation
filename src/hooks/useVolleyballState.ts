@@ -1,20 +1,23 @@
 import { useState } from 'react';
 import type { Court, Team, FormData, GameScoreData, GameEvent } from '../types';
 import { initialTeams, initialRegisteredTeams, initialQueue } from '../data/initialData';
-import { generateRandomString } from '../utils/dataUtils';
+import { generateRandomString, isTeamOnCourt } from '../utils/dataUtils';
 
 export const useVolleyballState = () => {
   // Core state
   const [teams, setTeams] = useState<Court[]>(initialTeams);
   const [registeredTeams, setRegisteredTeams] = useState<Team[]>(initialRegisteredTeams);
   const [teamQueue, setTeamQueue] = useState<Team[]>(initialQueue);
+  const [kingsCourtQueue, setKingsCourtQueue] = useState<Team[]>([]);
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([]);
+  const [lastCreatedEventId, setLastCreatedEventId] = useState<string | null>(null);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isReportGameModalOpen, setIsReportGameModalOpen] = useState(false);
   const [isAddToQueueModalOpen, setIsAddToQueueModalOpen] = useState(false);
+  const [isAddToKingsCourtQueueModalOpen, setIsAddToKingsCourtQueueModalOpen] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState<FormData>({ 
@@ -31,6 +34,7 @@ export const useVolleyballState = () => {
 
   // Selection states
   const [selectedTeams, setSelectedTeams] = useState<number[]>([]);
+  const [selectedTeamsForKingsCourt, setSelectedTeamsForKingsCourt] = useState<number[]>([]);
   const [editingTeamIndex, setEditingTeamIndex] = useState<number | null>(null);
   const [reportingCourtIndex, setReportingCourtIndex] = useState<number | null>(null);
   const [deletingTeamIndex, setDeletingTeamIndex] = useState<number | null>(null);
@@ -45,6 +49,7 @@ export const useVolleyballState = () => {
     teams: Court[];
     registeredTeams: Team[];
     teamQueue: Team[];
+    kingsCourtQueue: Team[];
   }) => {
     const newEvent: GameEvent = {
       ...event,
@@ -53,10 +58,18 @@ export const useVolleyballState = () => {
       stateSnapshot: newState || {
         teams: JSON.parse(JSON.stringify(teams)), // Deep copy
         registeredTeams: JSON.parse(JSON.stringify(registeredTeams)),
-        teamQueue: JSON.parse(JSON.stringify(teamQueue))
+        teamQueue: JSON.parse(JSON.stringify(teamQueue)),
+        kingsCourtQueue: JSON.parse(JSON.stringify(kingsCourtQueue))
       }
     };
-    setGameEvents(prev => [newEvent, ...prev]); // Add to beginning for newest first
+    
+    setGameEvents(prev => {
+      const newEvents = [newEvent, ...prev];
+      return newEvents;
+    });
+    
+    // Return the event ID for immediate use
+    return newEvent.id;
   };
 
   // Function to reset state to a specific event
@@ -103,12 +116,12 @@ export const useVolleyballState = () => {
   };
 
   // Team management handlers
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): string | null => {
     e.preventDefault();
     
     // Validate that team name is not empty
     if (!formData.teamName.trim()) {
-      return; // Don't proceed if team name is empty
+      return null; // Don't proceed if team name is empty
     }
     
     const newTeam: Team = {
@@ -119,17 +132,20 @@ export const useVolleyballState = () => {
     setRegisteredTeams(newRegisteredTeams);
     
     // Add game event with the new state
-    addGameEvent({
+    const eventId = addGameEvent({
       type: 'team_added',
-      description: `New team "${formData.teamName}" was registered with ${formData.player1}, ${formData.player2}, ${formData.player3}, ${formData.player4}`
+      description: `New team "${formData.teamName}" was registered with players: ${formData.player1}, ${formData.player2}, ${formData.player3}, ${formData.player4}`
     }, {
       teams,
       registeredTeams: newRegisteredTeams,
-      teamQueue
+      teamQueue,
+      kingsCourtQueue
     });
     
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
     setIsModalOpen(false);
+    
+    return eventId;
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
@@ -152,6 +168,7 @@ export const useVolleyballState = () => {
     setFormData({ teamName: '', player1: '', player2: '', player3: '', player4: '' });
     setGameScoreData({ team1Score: '', team2Score: '' });
     setSelectedTeams([]);
+    setSelectedTeamsForKingsCourt([]);
     setEditingTeamIndex(null);
     setReportingCourtIndex(null);
     setDeletingTeamIndex(null);
@@ -161,6 +178,7 @@ export const useVolleyballState = () => {
     setIsEditModalOpen(false);
     setIsReportGameModalOpen(false);
     setIsAddToQueueModalOpen(false);
+    setIsAddToKingsCourtQueueModalOpen(false);
     setTeamDetailsModalOpen(false);
   };
 
@@ -182,7 +200,8 @@ export const useVolleyballState = () => {
     setIsReportGameModalOpen(true);
   };
 
-  const handleReportGameSubmit = (e: React.FormEvent) => {
+  const handleReportGameSubmit = (e: React.FormEvent): string | null => {
+    
     e.preventDefault();
     if (reportingCourtIndex !== null) {
       const court = teams[reportingCourtIndex];
@@ -194,12 +213,17 @@ export const useVolleyballState = () => {
       const winner = team1Score > team2Score ? court.team1 : court.team2;
       const loser = team1Score > team2Score ? court.team2 : court.team1;
       
-      // For challenger courts (index 0 and 1), clear the teams after the game
+      // For challenger courts (index 0 and 1), winner goes to Kings Court queue, loser leaves
       // For Kings Court (index 2), winner stays, loser leaves
+      let newKingsCourtQueue = [...kingsCourtQueue];
+      
       let newTeams = teams.map((court, index) => {
         if (index === reportingCourtIndex) {
           if (index < 2) {
-            // Challenger courts - clear teams after game
+            // Challenger courts - winner goes to Kings Court queue, clear teams after game
+            if (winner.name !== "No Team") {
+              newKingsCourtQueue = [...newKingsCourtQueue, winner];
+            }
             return {
               ...court,
               score: score,
@@ -244,11 +268,12 @@ export const useVolleyballState = () => {
       });
       
       setTeams(newTeams);
+      setKingsCourtQueue(newKingsCourtQueue);
       
       // Add game event with the new state
       let eventDescription;
       if (reportingCourtIndex < 2) {
-        eventDescription = `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}`;
+        eventDescription = `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}. WINNER: ${winner.name} advances to Kings Court queue to play. LOSER: ${loser.name} removed from court and must re-queue manually.`;
       } else {
         // Kings Court logic
         const winnerWasTeam1 = court.team1.name === winner.name;
@@ -258,13 +283,15 @@ export const useVolleyballState = () => {
         const newConsecutiveWins = currentConsecutiveWins + 1;
         
         if (newConsecutiveWins >= 2) {
-          eventDescription = `${winner.name} wins their second consecutive game and must leave the court to make room for others.`;
+          eventDescription = `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}. WINNER: ${winner.name} wins their second consecutive game and must leave the court to make room for others. LOSER: ${loser.name} removed from court and must re-queue manually.`;
         } else {
-          eventDescription = `${winner.name} stays on the court, ${loser.name} leaves.`;
+          eventDescription = `Game finished on ${court.court}: ${court.team1.name} vs ${court.team2.name} - Final Score: ${score}. WINNER: ${winner.name} stays on the court for another game. LOSER: ${loser.name} removed from court and must re-queue manually.`;
         }
       }
       
-      addGameEvent({
+      console.log('About to add game event with description:', eventDescription);
+      
+      const newEventId = addGameEvent({
         type: 'game_reported',
         description: eventDescription,
         courtNumber: court.court,
@@ -276,12 +303,20 @@ export const useVolleyballState = () => {
       }, {
         teams: newTeams,
         registeredTeams,
-        teamQueue
+        teamQueue,
+        kingsCourtQueue: newKingsCourtQueue
       });
+      
+      // Store the event ID for the toast to use
+      setLastCreatedEventId(newEventId);
       
       setGameScoreData({ team1Score: '', team2Score: '' });
       setReportingCourtIndex(null);
       setIsReportGameModalOpen(false);
+      
+      return newEventId;
+    } else {
+      return null;
     }
   };
 
@@ -308,7 +343,7 @@ export const useVolleyballState = () => {
     setTeamQueue(prev => [...prev, team]);
   };
 
-  const handleAddSelectedTeamsToQueue = () => {
+  const handleAddSelectedTeamsToQueue = (): string | null => {
     // Get available teams (not on courts and not in queue)
     const availableTeams = registeredTeams.filter(team => {
       const inQueue = teamQueue.some(queueTeam => queueTeam.name === team.name);
@@ -326,16 +361,19 @@ export const useVolleyballState = () => {
     
     // Add game event with the new state
     if (teamsToAdd.length > 0) {
-      addGameEvent({
+      return addGameEvent({
         type: 'teams_queued',
-        description: `Teams added to queue: ${teamsToAdd.map(team => team.name).join(', ')}`,
+        description: `Teams added to general queue: ${teamsToAdd.map(team => team.name).join(', ')}`,
         teams: teamsToAdd
       }, {
         teams,
         registeredTeams,
-        teamQueue: newTeamQueue
+        teamQueue: newTeamQueue,
+        kingsCourtQueue
       });
     }
+    
+    return null;
   };
 
   const handleToggleTeamSelection = (teamIndex: number) => {
@@ -360,8 +398,6 @@ export const useVolleyballState = () => {
     
     // Select all available teams by creating an array with all indices from 0 to availableTeams.length - 1
     const allIndices = Array.from({ length: availableTeams.length }, (_, i) => i);
-    console.log('handleSelectAllTeams: setting indices:', allIndices, 'for', availableTeams.length, 'teams');
-    console.log('Available teams:', availableTeams.map(t => t.name));
     setSelectedTeams(allIndices);
   };
 
@@ -369,7 +405,70 @@ export const useVolleyballState = () => {
     setTeamQueue(prev => prev.filter((_, index) => index !== queueIndex));
   };
 
-  const handleClearTeams = (courtIndex: number) => {
+  // Kings Court Queue handlers
+  const handleAddToKingsCourtQueue = (teamIndex: number): string | null => {
+    const team = registeredTeams[teamIndex];
+    setKingsCourtQueue(prev => [...prev, team]);
+    
+    // Add game event
+    return addGameEvent({
+      type: 'teams_added',
+      description: `Team "${team.name}" added to Kings Court queue`,
+      courtNumber: 'Kings Court',
+      teams: [team],
+      netColor: 'amber'
+    }, {
+      teams,
+      registeredTeams,
+      teamQueue,
+      kingsCourtQueue: [...kingsCourtQueue, team]
+    });
+  };
+
+  const handleAddSelectedTeamsToKingsCourtQueue = (): string | null => {
+    const selectedTeamsList = selectedTeamsForKingsCourt.map(index => registeredTeams[index]);
+    setKingsCourtQueue(prev => [...prev, ...selectedTeamsList]);
+    setSelectedTeamsForKingsCourt([]);
+    setIsAddToKingsCourtQueueModalOpen(false);
+    
+    // Add game event
+    return addGameEvent({
+      type: 'teams_added',
+      description: `${selectedTeamsList.length} team(s) added to Kings Court queue: ${selectedTeamsList.map(team => team.name).join(', ')}`,
+      courtNumber: 'Kings Court',
+      teams: selectedTeamsList,
+      netColor: 'amber'
+    }, {
+      teams,
+      registeredTeams,
+      teamQueue,
+      kingsCourtQueue: [...kingsCourtQueue, ...selectedTeamsList]
+    });
+  };
+
+  const handleToggleTeamSelectionForKingsCourt = (teamIndex: number) => {
+    setSelectedTeamsForKingsCourt(prev => 
+      prev.includes(teamIndex) 
+        ? prev.filter(index => index !== teamIndex)
+        : [...prev, teamIndex]
+    );
+  };
+
+  const handleSelectAllTeamsForKingsCourt = () => {
+    const availableTeamIndices = registeredTeams
+      .map((team, index) => ({ team, index }))
+      .filter(({ team }) => !isTeamOnCourt(team.name, teams) && !teamQueue.some(qTeam => qTeam.name === team.name) && !kingsCourtQueue.some(kTeam => kTeam.name === team.name))
+      .map(({ index }) => index);
+    
+    setSelectedTeamsForKingsCourt(availableTeamIndices);
+  };
+
+  const handleRemoveFromKingsCourtQueue = (queueIndex: number) => {
+    const newKingsCourtQueue = kingsCourtQueue.filter((_, index) => index !== queueIndex);
+    setKingsCourtQueue(newKingsCourtQueue);
+  };
+
+  const handleClearTeams = (courtIndex: number): string | null => {
     const court = teams[courtIndex];
     const newTeams = teams.map((court, index) => 
       index === courtIndex 
@@ -380,72 +479,115 @@ export const useVolleyballState = () => {
     setTeams(newTeams);
     
     // Add game event with the new state
-    addGameEvent({
+    return addGameEvent({
       type: 'court_cleared',
-      description: `${court.court} was cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
+      description: `${court.court} was manually cleared. Previous teams: ${court.team1.name} vs ${court.team2.name}`,
       courtNumber: court.court,
       teams: [court.team1, court.team2],
       netColor: court.netColor
     }, {
       teams: newTeams,
       registeredTeams,
-      teamQueue
+      teamQueue,
+      kingsCourtQueue
     });
   };
 
-  const handleFillFromQueue = (courtIndex: number) => {
+  const handleFillFromQueue = (courtIndex: number): string | null => {
     const court = teams[courtIndex];
     const isKingsCourt = court.court === "Kings Court";
     
     if (isKingsCourt) {
-      // Kings Court logic: fill only empty spots
+      // Kings Court logic: fill from Kings Court queue first, then general queue
       const hasTeam1 = court.team1.name !== "No Team";
       const hasTeam2 = court.team2.name !== "No Team";
       
       if (hasTeam1 && hasTeam2) {
         // Both spots filled, can't fill from queue
-        return;
+        return null;
       }
       
       if (!hasTeam1 && !hasTeam2) {
-        // Both spots empty - fill both spots with different teams from queue
-        if (teamQueue.length >= 2) {
-          const firstTeam = teamQueue[0];
-          const secondTeam = teamQueue[1];
-          const newTeamQueue = teamQueue.slice(2);
-          
-          const newTeams = teams.map((court, index) => 
-            index === courtIndex 
-              ? { 
-                  ...court, 
-                  team1: firstTeam,
-                  team2: secondTeam
-                }
-              : court
-          );
-          
-          setTeams(newTeams);
-          setTeamQueue(newTeamQueue);
-          
-          // Add game event with the new state
-          addGameEvent({
-            type: 'teams_added',
-            description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
-            courtNumber: court.court,
-            teams: [firstTeam, secondTeam],
-            netColor: court.netColor
-          }, {
-            teams: newTeams,
-            registeredTeams,
-            teamQueue: newTeamQueue
-          });
+        // Both spots empty - try Kings Court queue first, then general queue
+        let firstTeam, secondTeam, newKingsCourtQueue, newTeamQueue;
+        
+        if (kingsCourtQueue.length >= 2) {
+          // Use Kings Court queue
+          firstTeam = kingsCourtQueue[0];
+          secondTeam = kingsCourtQueue[1];
+          newKingsCourtQueue = kingsCourtQueue.slice(2);
+          newTeamQueue = teamQueue;
+        } else if (kingsCourtQueue.length === 1 && teamQueue.length >= 1) {
+          // Use 1 from Kings Court queue + 1 from general queue
+          firstTeam = kingsCourtQueue[0];
+          secondTeam = teamQueue[0];
+          newKingsCourtQueue = kingsCourtQueue.slice(1);
+          newTeamQueue = teamQueue.slice(1);
+        } else if (teamQueue.length >= 2) {
+          // Use general queue only
+          firstTeam = teamQueue[0];
+          secondTeam = teamQueue[1];
+          newKingsCourtQueue = kingsCourtQueue;
+          newTeamQueue = teamQueue.slice(2);
+        } else {
+          // Not enough teams
+          return null;
         }
-        return;
-      }
-      
-      if (teamQueue.length >= 1) {
-        const teamToAdd = teamQueue[0];
-        const newTeamQueue = teamQueue.slice(1);
+        
+        const newTeams = teams.map((court, index) => 
+          index === courtIndex 
+            ? { 
+                ...court, 
+                team1: firstTeam,
+                team2: secondTeam
+              }
+            : court
+        );
+        
+        setTeams(newTeams);
+        setKingsCourtQueue(newKingsCourtQueue);
+        setTeamQueue(newTeamQueue);
+        
+        // Add game event with the new state
+        let queueSource = '';
+        if (kingsCourtQueue.length >= 2) {
+          queueSource = 'Kings Court queue';
+        } else if (kingsCourtQueue.length === 1 && teamQueue.length >= 1) {
+          queueSource = 'Kings Court queue and general queue';
+        } else if (teamQueue.length >= 2) {
+          queueSource = 'general queue';
+        }
+        
+        return addGameEvent({
+          type: 'teams_added',
+          description: `Teams added to ${court.court} from ${queueSource}: ${firstTeam.name} vs ${secondTeam.name}`,
+          courtNumber: court.court,
+          teams: [firstTeam, secondTeam],
+          netColor: court.netColor
+        }, {
+          teams: newTeams,
+          registeredTeams,
+          teamQueue: newTeamQueue,
+          kingsCourtQueue: newKingsCourtQueue
+        });
+      } else {
+        // One spot empty - try Kings Court queue first, then general queue
+        let teamToAdd, newKingsCourtQueue, newTeamQueue;
+        
+        if (kingsCourtQueue.length >= 1) {
+          // Use Kings Court queue
+          teamToAdd = kingsCourtQueue[0];
+          newKingsCourtQueue = kingsCourtQueue.slice(1);
+          newTeamQueue = teamQueue;
+        } else if (teamQueue.length >= 1) {
+          // Use general queue
+          teamToAdd = teamQueue[0];
+          newKingsCourtQueue = kingsCourtQueue;
+          newTeamQueue = teamQueue.slice(1);
+        } else {
+          // No teams available
+          return null;
+        }
         
         const newTeams = teams.map((court, index) => 
           index === courtIndex 
@@ -458,24 +600,33 @@ export const useVolleyballState = () => {
         );
         
         setTeams(newTeams);
+        setKingsCourtQueue(newKingsCourtQueue);
         setTeamQueue(newTeamQueue);
         
         // Add game event with the new state
         const existingTeam = hasTeam1 ? court.team1 : court.team2;
-        addGameEvent({
+        let queueSource = '';
+        if (kingsCourtQueue.length >= 1) {
+          queueSource = 'Kings Court queue';
+        } else if (teamQueue.length >= 1) {
+          queueSource = 'general queue';
+        }
+        
+        return addGameEvent({
           type: 'teams_added',
-          description: `${teamToAdd.name} joins ${court.court} to play ${existingTeam.name}.`,
+          description: `${teamToAdd.name} joins ${court.court} from ${queueSource} to play ${existingTeam.name}.`,
           courtNumber: court.court,
           teams: [teamToAdd],
           netColor: court.netColor
         }, {
           teams: newTeams,
           registeredTeams,
-          teamQueue: newTeamQueue
+          teamQueue: newTeamQueue,
+          kingsCourtQueue: newKingsCourtQueue
         });
       }
     } else {
-      // Challenger Court logic: fill both spots
+      // Challenger Court logic: fill both spots from main queue only
       if (teamQueue.length >= 2) {
         const firstTeam = teamQueue[0];
         const secondTeam = teamQueue[1];
@@ -492,22 +643,25 @@ export const useVolleyballState = () => {
         setTeamQueue(newTeamQueue);
         
         // Add game event with the new state
-        addGameEvent({
+        return addGameEvent({
           type: 'teams_added',
-          description: `Teams added to ${court.court}: ${firstTeam.name} vs ${secondTeam.name}`,
+          description: `Teams added to ${court.court} from general queue: ${firstTeam.name} vs ${secondTeam.name}`,
           courtNumber: court.court,
           teams: [firstTeam, secondTeam],
           netColor: court.netColor
         }, {
           teams: newTeams,
           registeredTeams,
-          teamQueue: newTeamQueue
+          teamQueue: newTeamQueue,
+          kingsCourtQueue
         });
       }
     }
+    
+    return null;
   };
 
-  const handleDeleteTeam = (teamIndex: number) => {
+  const handleDeleteTeam = (teamIndex: number): string | null => {
     const teamToDelete = registeredTeams[teamIndex];
     
     const newRegisteredTeams = registeredTeams.filter((_, index) => index !== teamIndex);
@@ -527,16 +681,18 @@ export const useVolleyballState = () => {
     setTeams(newTeams);
     
     // Add game event with the new state
-    addGameEvent({
+    const eventId = addGameEvent({
       type: 'team_deleted',
       description: `Team "${teamToDelete.name}" was deleted from the system`
     }, {
       teams: newTeams,
       registeredTeams: newRegisteredTeams,
-      teamQueue: newTeamQueue
+      teamQueue: newTeamQueue,
+      kingsCourtQueue
     });
     
     setDeletingTeamIndex(null);
+    return eventId;
   };
 
   // Team details modal handlers
@@ -571,7 +727,7 @@ export const useVolleyballState = () => {
     setSelectedCourtForDetails(null);
   };
 
-  const handleTeamChange = (courtIndex: number, teamPosition: 'team1' | 'team2', team: Team | null) => {
+  const handleTeamChange = (courtIndex: number, teamPosition: 'team1' | 'team2', team: Team | null): string | null => {
     const court = teams[courtIndex];
     const newTeam = team || { name: "No Team", players: ["", "", "", ""] };
     
@@ -589,16 +745,17 @@ export const useVolleyballState = () => {
     // Add game event with the new state
     const action = team ? 'added' : 'removed';
     const teamName = team ? team.name : (teamPosition === 'team1' ? court.team1.name : court.team2.name);
-    addGameEvent({
+    return addGameEvent({
       type: 'teams_added',
-      description: `Team "${teamName}" was ${action} from ${court.court} (${teamPosition})`,
+      description: `Team "${teamName}" was ${action} from ${court.court} (${teamPosition}) via court details modal`,
       courtNumber: court.court,
       teams: team ? [team] : [],
       netColor: court.netColor
     }, {
       teams: newTeams,
       registeredTeams,
-      teamQueue
+      teamQueue,
+      kingsCourtQueue
     });
   };
 
@@ -607,15 +764,19 @@ export const useVolleyballState = () => {
     teams,
     registeredTeams,
     teamQueue,
+    kingsCourtQueue,
     gameEvents,
+    lastCreatedEventId,
     isModalOpen,
     isEditModalOpen,
     isReportGameModalOpen,
     isAddToQueueModalOpen,
+    isAddToKingsCourtQueueModalOpen,
     teamDetailsModalOpen,
     formData,
     gameScoreData,
     selectedTeams,
+    selectedTeamsForKingsCourt,
     editingTeamIndex,
     reportingCourtIndex,
     deletingTeamIndex,
@@ -628,15 +789,19 @@ export const useVolleyballState = () => {
     setTeams,
     setRegisteredTeams,
     setTeamQueue,
+    setKingsCourtQueue,
     setGameEvents,
+    setLastCreatedEventId,
     setIsModalOpen,
     setIsEditModalOpen,
     setIsReportGameModalOpen,
     setIsAddToQueueModalOpen,
+    setIsAddToKingsCourtQueueModalOpen,
     setTeamDetailsModalOpen,
     setFormData,
     setGameScoreData,
     setSelectedTeams,
+    setSelectedTeamsForKingsCourt,
     setEditingTeamIndex,
     setReportingCourtIndex,
     setDeletingTeamIndex,
@@ -661,6 +826,11 @@ export const useVolleyballState = () => {
     handleToggleTeamSelection,
     handleSelectAllTeams,
     handleRemoveFromQueue,
+    handleAddToKingsCourtQueue,
+    handleAddSelectedTeamsToKingsCourtQueue,
+    handleToggleTeamSelectionForKingsCourt,
+    handleSelectAllTeamsForKingsCourt,
+    handleRemoveFromKingsCourtQueue,
     handleClearTeams,
     handleFillFromQueue,
     handleDeleteTeam,
