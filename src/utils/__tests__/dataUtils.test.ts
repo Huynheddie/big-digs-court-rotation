@@ -42,7 +42,7 @@ describe('dataUtils', () => {
 
   describe('getAvailableTeams', () => {
     it('should return teams not in queue and not on courts', () => {
-      const availableTeams = getAvailableTeams(mockTeams, mockCourts, mockTeamQueue);
+      const availableTeams = getAvailableTeams(mockTeams, mockTeamQueue, mockCourts);
       
       // Team A and B are on courts, Team C is in queue, so only Team D should be available
       expect(availableTeams).toHaveLength(1);
@@ -50,7 +50,7 @@ describe('dataUtils', () => {
     });
 
     it('should return teams not in queue, not on courts, and not in Kings Court queue', () => {
-      const availableTeams = getAvailableTeams(mockTeams, mockCourts, mockTeamQueue, mockKingsCourtQueue);
+      const availableTeams = getAvailableTeams(mockTeams, mockTeamQueue, mockCourts, mockKingsCourtQueue);
       
       // Team A and B are on courts, Team C is in general queue, Team D is in Kings Court queue
       // So no teams should be available
@@ -85,7 +85,7 @@ describe('dataUtils', () => {
         }
       ];
 
-      const availableTeams = getAvailableTeams(mockTeams, emptyCourts, [], []);
+      const availableTeams = getAvailableTeams(mockTeams, [], emptyCourts, []);
       
       expect(availableTeams).toHaveLength(4);
       expect(availableTeams.map(t => t.name)).toEqual(['Team A', 'Team B', 'Team C', 'Team D']);
@@ -98,7 +98,7 @@ describe('dataUtils', () => {
     });
 
     it('should handle empty queue arrays', () => {
-      const availableTeams = getAvailableTeams(mockTeams, mockCourts, [], []);
+      const availableTeams = getAvailableTeams(mockTeams, [], mockCourts, []);
       
       // Only Team A and B are on courts, so Team C and D should be available
       expect(availableTeams).toHaveLength(2);
@@ -108,17 +108,17 @@ describe('dataUtils', () => {
 
   describe('isTeamInQueue', () => {
     it('should return true when team is in queue', () => {
-      const result = isTeamInQueue(mockTeams[2], mockTeamQueue);
+      const result = isTeamInQueue(mockTeams[2].name, mockTeamQueue);
       expect(result).toBe(true);
     });
 
     it('should return false when team is not in queue', () => {
-      const result = isTeamInQueue(mockTeams[0], mockTeamQueue);
+      const result = isTeamInQueue(mockTeams[0].name, mockTeamQueue);
       expect(result).toBe(false);
     });
 
     it('should handle empty queue', () => {
-      const result = isTeamInQueue(mockTeams[0], []);
+      const result = isTeamInQueue(mockTeams[0].name, []);
       expect(result).toBe(false);
     });
 
@@ -127,24 +127,24 @@ describe('dataUtils', () => {
         name: 'Team C',
         players: ['Different Player 1', 'Different Player 2', 'Different Player 3', 'Different Player 4']
       };
-      const result = isTeamInQueue(teamWithSameName, mockTeamQueue);
+      const result = isTeamInQueue(teamWithSameName.name, mockTeamQueue);
       expect(result).toBe(true); // Should match by name
     });
   });
 
   describe('isTeamOnCourt', () => {
     it('should return true when team is on a court', () => {
-      const result = isTeamOnCourt(mockTeams[0], mockCourts);
+      const result = isTeamOnCourt(mockTeams[0].name, mockCourts);
       expect(result).toBe(true);
     });
 
     it('should return false when team is not on any court', () => {
-      const result = isTeamOnCourt(mockTeams[2], mockCourts);
+      const result = isTeamOnCourt(mockTeams[2].name, mockCourts);
       expect(result).toBe(false);
     });
 
     it('should handle empty courts array', () => {
-      const result = isTeamOnCourt(mockTeams[0], []);
+      const result = isTeamOnCourt(mockTeams[0].name, []);
       expect(result).toBe(false);
     });
 
@@ -159,7 +159,7 @@ describe('dataUtils', () => {
           netColor: 'red'
         }
       ];
-      const result = isTeamOnCourt(mockTeams[0], emptyCourts);
+      const result = isTeamOnCourt(mockTeams[0].name, emptyCourts);
       expect(result).toBe(false);
     });
 
@@ -168,7 +168,7 @@ describe('dataUtils', () => {
         name: 'Team A',
         players: ['Different Player 1', 'Different Player 2', 'Different Player 3', 'Different Player 4']
       };
-      const result = isTeamOnCourt(teamWithSameName, mockCourts);
+      const result = isTeamOnCourt(teamWithSameName.name, mockCourts);
       expect(result).toBe(true); // Should match by name
     });
   });

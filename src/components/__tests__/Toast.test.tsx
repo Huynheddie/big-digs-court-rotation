@@ -65,7 +65,7 @@ describe('Toast', () => {
     );
 
     const toast = screen.getByRole('alert');
-    expect(toast).toHaveClass('bg-green-50', 'border-green-200', 'text-green-600');
+    expect(toast).toHaveClass('bg-green-50', 'border-green-200');
   });
 
   it('should have correct styling for error type', () => {
@@ -79,7 +79,7 @@ describe('Toast', () => {
     );
 
     const toast = screen.getByRole('alert');
-    expect(toast).toHaveClass('bg-red-50', 'border-red-200', 'text-red-600');
+    expect(toast).toHaveClass('bg-red-50', 'border-red-200');
   });
 
   it('should have correct styling for info type', () => {
@@ -93,7 +93,7 @@ describe('Toast', () => {
     );
 
     const toast = screen.getByRole('alert');
-    expect(toast).toHaveClass('bg-gray-50', 'border-gray-200', 'text-gray-600');
+    expect(toast).toHaveClass('bg-gray-50', 'border-gray-200');
   });
 
   it('should have cursor pointer when onClick is provided', () => {

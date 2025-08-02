@@ -97,8 +97,8 @@ describe('AddToKingsCourtQueueModal', () => {
       />
     );
 
-    expect(screen.getByText('No teams available to add')).toBeInTheDocument();
-    expect(screen.getByText('All teams are either on courts or in the queue')).toBeInTheDocument();
+    expect(screen.getByText('No teams available for Kings Court queue')).toBeInTheDocument();
+    expect(screen.getByText('All teams are either on courts or in queues')).toBeInTheDocument();
   });
 
   it('should call onToggleTeamSelection when team card is clicked', () => {
