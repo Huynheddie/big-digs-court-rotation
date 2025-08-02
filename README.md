@@ -55,7 +55,7 @@ A React-based web application for managing volleyball court rotations and team o
 
 ### GitHub Pages (Automatic)
 
-The application is automatically deployed to GitHub Pages when you push to the `main` branch. The deployment is handled by GitHub Actions.
+The application is automatically deployed to GitHub Pages when you push to the `main` branch. The deployment is handled by GitHub Actions and uses the `gh-pages` branch for hosting.
 
 **Live Demo**: https://huynheddie.github.io/big-digs-court-rotation/
 

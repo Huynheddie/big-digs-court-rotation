@@ -17,11 +17,12 @@ if [ $? -eq 0 ]; then
     # Commit changes
     git commit -m "Deploy to GitHub Pages - $(date)"
     
-    # Push to main branch
+    # Push to main branch (triggers GitHub Actions to deploy to gh-pages)
     git push origin main
     
     echo "🚀 Deployment initiated! Check GitHub Actions for progress."
     echo "📱 Your app will be available at: https://huynheddie.github.io/big-digs-court-rotation/"
+    echo "📋 The deployment will use the gh-pages branch (not main branch)"
 else
     echo "❌ Build failed! Please fix the errors and try again."
     exit 1
