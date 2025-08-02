@@ -49,6 +49,41 @@ A React-based web application for managing volleyball court rotations and team o
 - **Build for production**: `npm run build`
 - **Preview production build**: `npm run preview`
 - **Lint code**: `npm run lint`
+- **Run tests**: `npm test`
+
+## Deployment
+
+### GitHub Pages (Automatic)
+
+The application is automatically deployed to GitHub Pages when you push to the `main` branch. The deployment is handled by GitHub Actions.
+
+**Live Demo**: https://huynheddie.github.io/big-digs-court-rotation/
+
+### Manual Deployment
+
+To manually deploy:
+
+1. **Using the deployment script**:
+   ```bash
+   ./deploy.sh
+   ```
+
+2. **Manual steps**:
+   ```bash
+   npm run build
+   git add .
+   git commit -m "Deploy to GitHub Pages"
+   git push origin main
+   ```
+
+### Local Testing
+
+To test the production build locally:
+
+```bash
+npm run build
+npm run preview
+```
 
 ## Project Structure
 
