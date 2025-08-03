@@ -127,7 +127,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
       aria-labelledby="modal-title"
     >
       <div 
-        className="bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-2xl p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in"
+        className="bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-2xl p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in select-text modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{ userSelect: 'text', WebkitUserSelect: 'text', MozUserSelect: 'text', msUserSelect: 'text' }}
       >
