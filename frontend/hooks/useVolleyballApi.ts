@@ -347,7 +347,7 @@ export const useVolleyballApi = () => {
     try {
       const response = await healthApi.checkHealth();
       return response.success;
-    } catch (err) {
+    } catch {
       return false;
     }
   }, []);

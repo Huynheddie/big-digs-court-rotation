@@ -13,7 +13,7 @@ import { apiBaseUrl } from '../config/environment';
 // API service for communicating with the backend
 const API_BASE_URL = apiBaseUrl;
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

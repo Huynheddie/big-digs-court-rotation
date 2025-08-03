@@ -16,8 +16,8 @@ const developmentConfig: EnvironmentConfig = {
 
 // Production configuration
 const productionConfig: EnvironmentConfig = {
-  apiBaseUrl: 'https://your-backend-domain.com', // Update this with your actual backend URL
-  wsUrl: 'https://your-backend-domain.com', // Update this with your actual backend URL
+  apiBaseUrl: '', // Use relative URLs in production
+  wsUrl: '', // Use relative URLs in production
   isDevelopment: false,
   isProduction: true,
 };
