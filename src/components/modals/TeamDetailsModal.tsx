@@ -215,7 +215,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm font-medium text-secondary-700 mb-2">Team Name</h4>
-                <p className="text-body-large font-semibold text-secondary-900 break-words">{team.name}</p>
+                <p className="text-body-large font-semibold text-secondary-900 break-words select-text">{team.name}</p>
               </div>
 
               <div>
@@ -223,7 +223,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
                 <div className="space-y-3">
                   {team.players.map((player, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-secondary-50/60 rounded-xl border border-secondary-200">
-                      <span className="text-body font-medium text-secondary-800">{player || `Player ${index + 1} (Not set)`}</span>
+                      <span className="text-body font-medium text-secondary-800 select-text">{player || `Player ${index + 1} (Not set)`}</span>
                       <span className="text-xs text-secondary-700 bg-secondary-200 px-3 py-1 rounded-lg font-medium">
                         P{index + 1}
                       </span>
@@ -294,7 +294,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
                         {game.isWinner ? '🏆' : '❌'}
                       </span>
                       <div>
-                        <p className="text-body font-medium text-gray-800">
+                        <p className="text-body font-medium text-gray-800 select-text">
                           vs {game.opponent?.name || 'Unknown Team'}
                         </p>
                         <p className="text-caption text-gray-600">
@@ -303,9 +303,9 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-xl font-bold ${game.isWinner ? 'text-success-800' : 'text-error-800'}`}>
-                        {game.teamScore} - {game.opponentScore}
-                      </p>
+                                              <p className={`text-xl font-bold ${game.isWinner ? 'text-success-800' : 'text-error-800'} select-text`}>
+                          {game.teamScore} - {game.opponentScore}
+                        </p>
                       <p className="text-caption text-gray-600 font-medium">
                         {game.isWinner ? 'WIN' : 'LOSS'}
                       </p>
