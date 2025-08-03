@@ -18,6 +18,7 @@ import { ReportGameModal } from './components/modals/ReportGameModal';
 import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
 import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
 import { KingsCourtQueueCard } from './components/KingsCourtQueueCard';
+import { ConnectionStatus } from './components/ConnectionStatus';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
 import type { Team } from './types';
 
@@ -303,7 +304,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
-
+      <ConnectionStatus />
 
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 opacity-5">
