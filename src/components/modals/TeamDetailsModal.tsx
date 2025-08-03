@@ -120,7 +120,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -129,6 +129,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
       <div 
         className="bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-2xl p-6 w-full max-w-2xl mx-auto shadow-large max-h-[90vh] overflow-y-auto animate-scale-in"
         onClick={(e) => e.stopPropagation()}
+        style={{ userSelect: 'text', WebkitUserSelect: 'text', MozUserSelect: 'text', msUserSelect: 'text' }}
       >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">

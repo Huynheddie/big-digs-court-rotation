@@ -232,6 +232,10 @@
     @apply placeholder:text-gray-400;
     @apply bg-white;
     min-height: 44px;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
   }
 
   .input-error {
@@ -241,6 +245,10 @@
     @apply placeholder:text-gray-400;
     @apply bg-error-50;
     min-height: 44px;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
   }
 
   /* Loading states */
