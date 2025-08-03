@@ -18,6 +18,7 @@ import { TeamDetailsModal } from './components/modals/TeamDetailsModal';
 import { CourtDetailsModal } from './components/modals/CourtDetailsModal';
 import { KingsCourtQueueCard } from './components/KingsCourtQueueCard';
 import { getAvailableTeams, isTeamOnCourt } from './utils/dataUtils';
+import type { Team } from './types';
 
 function AppContent() {
   const { showToast } = useToast();
@@ -79,6 +80,7 @@ function AppContent() {
     handleCloseTeamDetails,
     handleEditTeamFromDetails,
     handleDeleteTeamFromDetails,
+    handleSaveTeamEditFromDetails,
     handleOpenCourtDetails,
     handleCloseCourtDetails,
     handleTeamChange,
@@ -270,6 +272,22 @@ function AppContent() {
       type: 'error',
       title: 'Team Deleted',
       message: `"${teamName}" has been permanently deleted.`
+    });
+  };
+
+  const handleSaveTeamEditFromDetailsWithToast = (teamIndex: number, updatedTeam: Team) => {
+    const oldTeam = registeredTeams[teamIndex];
+    const newEventId = handleSaveTeamEditFromDetails(teamIndex, updatedTeam);
+    
+    showToast({
+      type: 'success',
+      title: 'Team Updated!',
+      message: `Successfully updated "${oldTeam.name}" to "${updatedTeam.name}". Click to view details.`,
+      onClick: () => {
+        if (newEventId) {
+          setExpandEventId(newEventId);
+        }
+      }
     });
   };
 
@@ -537,6 +555,7 @@ function AppContent() {
         onClose={handleCloseTeamDetails}
         onEdit={handleEditTeamFromDetails}
         onDelete={handleDeleteTeamFromDetailsWithToast}
+        onSaveEdit={handleSaveTeamEditFromDetailsWithToast}
         teamIndex={selectedTeamForDetails}
       />
 

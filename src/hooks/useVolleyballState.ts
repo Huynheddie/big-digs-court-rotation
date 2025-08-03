@@ -716,6 +716,49 @@ export const useVolleyballState = () => {
     setDeletingTeamIndex(teamIndex);
   };
 
+  const handleSaveTeamEditFromDetails = (teamIndex: number, updatedTeam: Team): string | null => {
+    const oldTeam = registeredTeams[teamIndex];
+    
+    // Update the registered teams
+    const newRegisteredTeams = registeredTeams.map((team, index) => 
+      index === teamIndex ? updatedTeam : team
+    );
+    
+    // Update teams on courts if they're currently playing
+    const newTeams = teams.map(court => ({
+      ...court,
+      team1: court.team1.name === oldTeam.name ? updatedTeam : court.team1,
+      team2: court.team2.name === oldTeam.name ? updatedTeam : court.team2
+    }));
+    
+    // Update teams in queues
+    const newTeamQueue = teamQueue.map(team => 
+      team.name === oldTeam.name ? updatedTeam : team
+    );
+    
+    const newKingsCourtQueue = kingsCourtQueue.map(team => 
+      team.name === oldTeam.name ? updatedTeam : team
+    );
+    
+    setRegisteredTeams(newRegisteredTeams);
+    setTeams(newTeams);
+    setTeamQueue(newTeamQueue);
+    setKingsCourtQueue(newKingsCourtQueue);
+    
+    // Add game event
+    return addGameEvent({
+      type: 'team_edited',
+      description: `Team "${oldTeam.name}" was updated to "${updatedTeam.name}" with new player information`,
+      teams: [updatedTeam],
+      netColor: 'default'
+    }, {
+      teams: newTeams,
+      registeredTeams: newRegisteredTeams,
+      teamQueue: newTeamQueue,
+      kingsCourtQueue: newKingsCourtQueue
+    });
+  };
+
   // Court details modal handlers
   const handleOpenCourtDetails = (courtIndex: number) => {
     setSelectedCourtForDetails(courtIndex);
@@ -838,6 +881,7 @@ export const useVolleyballState = () => {
     handleCloseTeamDetails,
     handleEditTeamFromDetails,
     handleDeleteTeamFromDetails,
+    handleSaveTeamEditFromDetails,
     handleOpenCourtDetails,
     handleCloseCourtDetails,
     handleTeamChange,

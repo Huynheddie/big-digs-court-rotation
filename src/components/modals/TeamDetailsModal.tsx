@@ -9,6 +9,7 @@ interface TeamDetailsModalProps {
   onClose: () => void;
   onEdit: (teamIndex: number) => void;
   onDelete: (teamIndex: number) => void;
+  onSaveEdit: (teamIndex: number, updatedTeam: Team) => void;
   teamIndex: number | null;
 }
 
@@ -18,6 +19,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
   gameEvents,
   onClose,
   onDelete,
+  onSaveEdit,
   teamIndex
 }) => {
   useEscapeKey(onClose, isOpen);
@@ -86,9 +88,21 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
   };
 
   const handleSaveEdit = () => {
-    // This would need to be connected to the actual edit handler
-    // For now, just close editing mode
-    setIsEditing(false);
+    if (teamIndex !== null && team) {
+      const updatedTeam: Team = {
+        ...team,
+        name: editFormData.teamName.trim(),
+        players: [
+          editFormData.player1.trim(),
+          editFormData.player2.trim(),
+          editFormData.player3.trim(),
+          editFormData.player4.trim()
+        ]
+      };
+      
+      onSaveEdit(teamIndex, updatedTeam);
+      setIsEditing(false);
+    }
   };
 
   const handleCancelEdit = () => {
