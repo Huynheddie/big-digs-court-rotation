@@ -76,13 +76,15 @@
     background: #9ca3af;
   }
   
-  /* Remove any potential selection styling */
+  /* Selection styling */
   ::selection {
-    background: transparent;
+    background: #3b82f6;
+    color: white;
   }
   
   ::-moz-selection {
-    background: transparent;
+    background: #3b82f6;
+    color: white;
   }
   
   /* Target viewport and any browser chrome elements */
@@ -318,6 +320,15 @@
     -webkit-user-select: text !important;
     -moz-user-select: text !important;
     -ms-user-select: text !important;
+  }
+
+  /* Specific rule for player names */
+  .player-name {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    cursor: text;
   }
 
   /* Accessibility improvements */

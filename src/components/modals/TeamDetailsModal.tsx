@@ -215,7 +215,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm font-medium text-secondary-700 mb-2">Team Name</h4>
-                <p className="text-body-large font-semibold text-secondary-900 break-words select-text">{team.name}</p>
+                <p className="text-body-large font-semibold text-secondary-900 break-words select-text player-name">{team.name}</p>
               </div>
 
               <div>
@@ -223,7 +223,7 @@ export const TeamDetailsModal: React.FC<TeamDetailsModalProps> = ({
                 <div className="space-y-3">
                   {team.players.map((player, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-secondary-50/60 rounded-xl border border-secondary-200">
-                      <span className="text-body font-medium text-secondary-800 select-text">{player || `Player ${index + 1} (Not set)`}</span>
+                      <span className="text-body font-medium text-secondary-800 select-text player-name">{player || `Player ${index + 1} (Not set)`}</span>
                       <span className="text-xs text-secondary-700 bg-secondary-200 px-3 py-1 rounded-lg font-medium">
                         P{index + 1}
                       </span>
