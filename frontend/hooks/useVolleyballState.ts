@@ -217,7 +217,7 @@ export const useVolleyballState = () => {
       // For Kings Court (index 2), winner stays, loser leaves
       let newKingsCourtQueue = [...kingsCourtQueue];
       
-      let newTeams = teams.map((court, index) => {
+      const newTeams = teams.map((court, index) => {
         if (index === reportingCourtIndex) {
           if (index < 2) {
             // Challenger courts - winner goes to Kings Court queue, clear teams after game

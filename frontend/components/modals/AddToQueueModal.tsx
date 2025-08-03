@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Team } from '../../types';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
@@ -8,7 +8,7 @@ interface AddToQueueModalProps {
   availableTeams: Team[];
   selectedTeams: number[];
   onToggleTeamSelection: (teamIndex: number) => void;
-  onSelectAllTeams: () => void;
+
   onAddSelectedTeams: () => void;
   onCancel: () => void;
   setSelectedTeams: (teams: number[]) => void;
@@ -19,7 +19,7 @@ export const AddToQueueModal: React.FC<AddToQueueModalProps> = ({
   availableTeams,
   selectedTeams,
   onToggleTeamSelection,
-  onSelectAllTeams,
+
   onAddSelectedTeams,
   onCancel,
   setSelectedTeams

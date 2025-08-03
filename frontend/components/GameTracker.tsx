@@ -49,20 +49,7 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
     }
   };
 
-  const getNetColorClasses = (netColor?: string) => {
-    switch (netColor) {
-      case 'red':
-        return 'text-red-600 bg-red-50 border-red-200';
-      case 'blue':
-        return 'text-blue-600 bg-blue-50 border-blue-200';
-      case 'green':
-        return 'text-green-600 bg-green-50 border-green-200';
-      case 'yellow':
-        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      default:
-        return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
+
 
   const getEventColorClasses = (event: GameEvent) => {
     switch (event.type) {
@@ -117,7 +104,7 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
     switch (event.type) {
       case 'court_cleared':
         return `${event.courtNumber || 'Unknown Court'} cleared`;
-      case 'teams_added':
+      case 'teams_added': {
         if (event.teams && event.teams.length === 1) {
           // Single team added (Kings Court scenario)
           const teamName = event.teams[0]?.name || 'Unknown Team';
@@ -129,22 +116,27 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
           const team2Name = event.teams?.[1]?.name || 'Unknown Team';
           return `${team1Name} vs ${team2Name}`;
         }
-      case 'game_reported':
+      }
+      case 'game_reported': {
         if (event.winner && event.loser) {
           return `${event.winner.name} beat ${event.loser.name} ${event.score || ''}`;
         }
         const gameTeam1Name = event.teams?.[0]?.name || 'Unknown Team';
         const gameTeam2Name = event.teams?.[1]?.name || 'Unknown Team';
         return `${gameTeam1Name} vs ${gameTeam2Name} - ${event.score || 'No Score'}`;
-      case 'team_deleted':
+      }
+      case 'team_deleted': {
         const deletedTeamName = event.description.split('"')[1] || 'Unknown Team';
         return `Team "${deletedTeamName}" deleted`;
-      case 'team_added':
+      }
+      case 'team_added': {
         const addedTeamName = event.description.split('"')[1] || 'Unknown Team';
         return `Team "${addedTeamName}" added`;
-      case 'teams_queued':
+      }
+      case 'teams_queued': {
         const queuedTeamNames = event.teams?.map(team => team.name || 'Unknown Team').join(', ') || 'No teams';
         return `${queuedTeamNames} added to queue`;
+      }
       default:
         return event.description || 'Event occurred';
     }
@@ -160,20 +152,23 @@ export const GameTracker: React.FC<GameTrackerProps> = ({ gameEvents, onResetToE
     switch (event.type) {
       case 'court_cleared':
         return `${event.courtNumber || 'Unknown Court'} was cleared.`;
-      case 'teams_added':
+      case 'teams_added': {
         if (event.teams && event.teams.length === 1) {
           return `A team was added to ${event.courtNumber || 'a court'}.`;
         } else {
           return `Two new teams were added to ${event.courtNumber || 'a court'}.`;
         }
+      }
       case 'game_reported':
         return `A game on ${event.courtNumber || 'a court'} has been completed.`;
-      case 'team_deleted':
+      case 'team_deleted': {
         const teamName = event.description?.split('"')[1] || 'Unknown Team';
         return `Team "${teamName}" has been permanently removed from the system.`;
-      case 'team_added':
+      }
+      case 'team_added': {
         const newTeamName = event.description?.split('"')[1] || 'Unknown Team';
         return `A new team "${newTeamName}" has been registered in the system.`;
+      }
       case 'teams_queued':
         return `Teams were added to the waiting queue.`;
       default:

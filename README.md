@@ -1,113 +1,173 @@
-# Big Digs Court Rotation System
+# Volleyball Court System
 
-A React-based web application for managing volleyball court rotations and team organization. Built with TypeScript, Vite, and Tailwind CSS.
-
-## Features
-
-- **Court Management**: Visual representation of volleyball courts with rotation tracking
-- **Team Organization**: Add and manage teams with custom colors and player assignments
-- **Real-time Updates**: Dynamic state management for seamless user experience
-- **Modern UI**: Clean, responsive interface built with Tailwind CSS
-
-## Tech Stack
-
-- **Frontend**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **State Management**: Custom React hooks
-- **Linting**: ESLint with TypeScript support
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (version 16 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Huynheddie/big-digs-court-rotation.git
-   cd big-digs-court-rotation
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser and navigate to `http://localhost:5173`
-
-## Development
-
-- **Build for production**: `npm run build`
-- **Preview production build**: `npm run preview`
-- **Lint code**: `npm run lint`
-- **Run tests**: `npm test`
-
-## Deployment
-
-### GitHub Pages (Automatic)
-
-The application is automatically deployed to GitHub Pages when you push to the `main` branch. The deployment is handled by GitHub Actions and uses the `gh-pages` branch for hosting.
-
-**Live Demo**: https://huynheddie.github.io/big-digs-court-rotation/
-
-### Manual Deployment
-
-To manually deploy:
-
-1. **Using the deployment script**:
-   ```bash
-   ./deploy.sh
-   ```
-
-2. **Manual steps**:
-   ```bash
-   npm run build
-   git add .
-   git commit -m "Deploy to GitHub Pages"
-   git push origin main
-   ```
-
-### Local Testing
-
-To test the production build locally:
-
-```bash
-npm run build
-npm run preview
-```
+A real-time volleyball court management system with a React frontend and Node.js backend.
 
 ## Project Structure
 
 ```
-src/
-├── components/          # React components
-│   ├── CourtCard.tsx   # Court display component
-│   └── modals/         # Modal components
-├── context/            # React context providers
-├── data/               # Initial data and constants
-├── hooks/              # Custom React hooks
-├── types/              # TypeScript type definitions
-├── utils/              # Utility functions
-└── App.tsx             # Main application component
+volleyball-court-system/
+├── frontend/          # React + TypeScript frontend
+├── backend/           # Node.js + Express + TypeScript backend
+├── package.json       # Root package.json for managing both services
+└── README.md          # This file
+```
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm 8+
+
+### Installation
+
+1. **Install all dependencies:**
+   ```bash
+   npm run install:all
+   ```
+
+2. **Set up environment variables:**
+   ```bash
+   # Backend environment
+   cp backend/env.example backend/.env
+   # Edit backend/.env with your configuration
+   ```
+
+3. **Start both frontend and backend in development mode:**
+   ```bash
+   npm run dev
+   ```
+
+   This will start:
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:3001
+
+### Individual Services
+
+**Frontend only:**
+```bash
+npm run dev:frontend
+```
+
+**Backend only:**
+```bash
+npm run dev:backend
+```
+
+## Available Scripts
+
+### Root Level (Monorepo)
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run build` - Build both frontend and backend
+- `npm run test` - Run tests for both frontend and backend
+- `npm run lint` - Run linting for both frontend and backend
+- `npm run deploy` - Deploy frontend to GitHub Pages
+
+### Frontend
+- `npm run dev:frontend` - Start frontend development server
+- `npm run build:frontend` - Build frontend for production
+- `npm run test:frontend` - Run frontend tests
+- `npm run lint:frontend` - Run frontend linting
+
+### Backend
+- `npm run dev:backend` - Start backend development server
+- `npm run build:backend` - Build backend for production
+- `npm run test:backend` - Run backend tests
+- `npm run lint:backend` - Run backend linting
+
+## Technology Stack
+
+### Frontend
+- **React 19** with TypeScript
+- **Vite** for build tooling
+- **Tailwind CSS** for styling
+- **React Hook Form** with Zod validation
+- **Socket.IO Client** for real-time updates
+- **Framer Motion** for animations
+- **Zustand** for state management
+
+### Backend
+- **Node.js** with TypeScript
+- **Express.js** for API server
+- **Socket.IO** for real-time communication
+- **Zod** for validation
+- **In-memory data store** (easily replaceable with database)
+
+## Features
+
+- **Real-time court management** with live updates
+- **Team registration and management**
+- **Queue system** for both general and Kings Court
+- **Game reporting** with automatic queue management
+- **Responsive design** for mobile and desktop
+- **Type-safe** throughout the stack
+
+## API Documentation
+
+The backend API is documented at `http://localhost:3001/api` when running.
+
+### Key Endpoints
+
+- **Teams**: `/api/teams` - CRUD operations for teams
+- **Courts**: `/api/courts` - Court management and game reporting
+- **Queues**: `/api/queues` - Queue management for both court types
+
+## Development
+
+### Frontend Development
+```bash
+cd frontend
+npm run dev
+```
+
+### Backend Development
+```bash
+cd backend
+npm run dev
+```
+
+### Testing
+```bash
+# Run all tests
+npm run test
+
+# Run specific service tests
+npm run test:frontend
+npm run test:backend
+```
+
+### Linting
+```bash
+# Run all linting
+npm run lint
+
+# Run specific service linting
+npm run lint:frontend
+npm run lint:backend
+```
+
+## Deployment
+
+### Frontend (GitHub Pages)
+```bash
+npm run deploy
+```
+
+### Backend
+```bash
+cd backend
+npm run build
+npm start
 ```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License.
+MIT License - see LICENSE file for details

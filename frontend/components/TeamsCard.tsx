@@ -13,12 +13,14 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
   onOpenModal,
   onOpenTeamDetails
 }) => {
+  // Sort teams alphabetically by name
+  const sortedTeams = [...teams].sort((a, b) => a.name.localeCompare(b.name));
   return (
     <div className="bg-gradient-to-br from-secondary-50 to-secondary-100 border border-secondary-200 rounded-2xl shadow-soft">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 gap-4">
         <h2 className="text-heading-2 text-secondary-900">
-          Teams ({teams.length})
+          Teams ({sortedTeams.length})
         </h2>
         <button
           onClick={onOpenModal}
@@ -38,7 +40,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
       {/* Content */}
       <div className="px-6 pb-6">
         <div className="max-h-[calc(100vh-12rem)] overflow-y-auto">
-          {teams.length === 0 ? (
+          {sortedTeams.length === 0 ? (
             <div className="text-center py-16 text-gray-500">
               <div className="text-5xl mb-6">👥</div>
               <h3 className="text-heading-4 text-gray-700 mb-2">No teams yet</h3>
@@ -56,10 +58,13 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 px-2">
-              {teams.map((team, index) => (
+              {sortedTeams.map((team) => {
+                // Find the original index of the team in the unsorted array
+                const originalIndex = teams.findIndex(t => t.name === team.name);
+                return (
                 <motion.div 
                   key={team.name} 
-                  onClick={() => onOpenTeamDetails(index)}
+                  onClick={() => onOpenTeamDetails(originalIndex)}
                   className="card-glass border-secondary-300 relative cursor-pointer group p-6"
                   whileHover={{ 
                     scale: 1.03,
@@ -85,7 +90,7 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      onOpenTeamDetails(index);
+                      onOpenTeamDetails(originalIndex);
                     }
                   }}
                 >
@@ -109,7 +114,8 @@ export const TeamsCard: React.FC<TeamsCardProps> = ({
                   {/* Hover indicator */}
                   <div className="absolute inset-0 border-2 border-secondary-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-1000 ease-out pointer-events-none"></div>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

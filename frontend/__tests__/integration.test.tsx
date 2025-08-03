@@ -2,12 +2,23 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import App from '../App'
 
-// Mock the ToastProvider to avoid context issues in tests
+// Mock the Toast components to avoid context issues in tests
 vi.mock('../components/Toast', () => ({
+  Toast: ({ title }: { title: string }) => <div data-testid="toast">{title}</div>,
   ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useToast: () => ({
     showToast: vi.fn()
   })
+}))
+
+vi.mock('../components/useToastHook', () => ({
+  useToast: () => ({
+    showToast: vi.fn()
+  })
+}))
+
+vi.mock('../components/ToastContextProvider', () => ({
+  ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
 }))
 
 describe('App Integration', () => {

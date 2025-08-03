@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -21,25 +21,17 @@ export const Toast: React.FC<ToastProps> = ({
   message,
   duration = 5000,
   onClose,
-  id,
   index,
-  eventId,
   onClick
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Animate in
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    
     // Auto dismiss
     const dismissTimer = setTimeout(() => {
-      setIsVisible(false);
       setTimeout(onClose, 300); // Wait for exit animation
     }, duration);
 
     return () => {
-      clearTimeout(timer);
       clearTimeout(dismissTimer);
     };
   }, [duration, onClose]);
@@ -119,7 +111,7 @@ export const Toast: React.FC<ToastProps> = ({
       role="alert"
       aria-live="assertive"
       aria-atomic="true"
-                onClick={(e) => {
+                onClick={() => {
             if (onClick) {
               onClick();
             }
@@ -158,7 +150,6 @@ export const Toast: React.FC<ToastProps> = ({
           </div>
           <motion.button
             onClick={() => {
-              setIsVisible(false);
               setTimeout(onClose, 300);
             }}
             className={`flex-shrink-0 text-lg font-bold leading-none opacity-70 hover:opacity-100 transition-opacity ${styles.title}`}
@@ -177,63 +168,4 @@ export const Toast: React.FC<ToastProps> = ({
   );
 };
 
-// Toast context and provider
-interface ToastContextType {
-  showToast: (toast: Omit<ToastProps, 'id' | 'onClose' | 'index'>) => void;
-}
-
-const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
-
-export const useToast = () => {
-  const context = React.useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within a ToastProvider');
-  }
-  return context;
-};
-
-interface ToastProviderProps {
-  children: React.ReactNode;
-}
-
-export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
-  const [toasts, setToasts] = useState<Array<ToastProps & { id: string }>>([]);
-
-  const showToast = (toast: Omit<ToastProps, 'id' | 'onClose' | 'index'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast = {
-      ...toast,
-      id,
-      index: toasts.length,
-      onClose: () => removeToast(id)
-    };
-    setToasts(prev => [...prev, newToast]);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  return (
-    <ToastContext.Provider value={{ showToast }}>
-      {children}
-      <div className="fixed top-4 right-4 z-50 space-y-3 pointer-events-none">
-        <AnimatePresence mode="popLayout">
-          {toasts.map((toast, index) => (
-            <motion.div
-              key={toast.id}
-              layout
-              style={{ pointerEvents: 'auto' }}
-              className="pointer-events-auto"
-            >
-              <Toast 
-                {...toast} 
-                index={index}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-    </ToastContext.Provider>
-  );
-}; 
+ 

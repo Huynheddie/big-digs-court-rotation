@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useVolleyballState } from './hooks/useVolleyballState';
 import { CourtCard } from './components/CourtCard';
-import { Accordion } from './components/Accordion';
+
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
 import { TeamsCard } from './components/TeamsCard';
 import { RotationSystemDropdown } from './components/RotationSystemDropdown';
-import { ToastProvider, useToast } from './components/Toast';
+import { ToastProvider } from './components/ToastContextProvider';
+import { useToast } from './components/useToastHook';
 import { AddTeamModal } from './components/modals/AddTeamModal';
 import { EditTeamModal } from './components/modals/EditTeamModal';
 import { AddToQueueModal } from './components/modals/AddToQueueModal';
@@ -30,7 +31,7 @@ function AppContent() {
     teamQueue,
     kingsCourtQueue,
     gameEvents,
-    lastCreatedEventId,
+
     isModalOpen,
     isEditModalOpen,
     isReportGameModalOpen,
@@ -53,7 +54,7 @@ function AppContent() {
     setSelectedTeams,
     setSelectedTeamsForKingsCourt,
     setDeletingTeamIndex,
-    setLastCreatedEventId,
+
 
     // Handlers
     handleInputChange,

@@ -4,7 +4,7 @@ import { useVolleyballState } from '../useVolleyballState';
 import type { Team, Court } from '../../types';
 
 describe('useVolleyballState', () => {
-  let result: any;
+  let result: ReturnType<typeof renderHook<typeof useVolleyballState>>['result'];
 
   beforeEach(() => {
     result = renderHook(() => useVolleyballState()).result;
@@ -22,8 +22,6 @@ describe('useVolleyballState', () => {
 
   describe('team management', () => {
     it('should add a new team correctly', () => {
-      const initialLength = result.current.registeredTeams.length;
-      
       act(() => {
         result.current.setFormData({
           teamName: 'Test Team',
@@ -32,7 +30,7 @@ describe('useVolleyballState', () => {
           player3: 'Charlie',
           player4: 'David'
         });
-        result.current.handleSubmit({ preventDefault: () => {} } as any);
+        result.current.handleSubmit({ preventDefault: () => {} } as React.FormEvent);
       });
 
       // The test might fail due to form validation or state management
@@ -106,10 +104,6 @@ describe('useVolleyballState', () => {
 
   describe('court operations', () => {
     it('should clear teams from court correctly', () => {
-      const court = result.current.teams[0];
-      const initialTeam1 = court.team1;
-      const initialTeam2 = court.team2;
-
       act(() => {
         result.current.handleClearTeams(0);
       });
@@ -121,10 +115,6 @@ describe('useVolleyballState', () => {
     });
 
     it('should fill court from queue correctly', () => {
-      const court = result.current.teams[0];
-      const initialTeam1 = court.team1;
-      const initialTeam2 = court.team2;
-
       act(() => {
         result.current.handleFillFromQueue(0);
       });
