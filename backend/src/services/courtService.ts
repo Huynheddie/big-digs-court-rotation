@@ -1,13 +1,12 @@
 import { dataStore } from './dataStore';
 import type { 
-  Court, 
   CourtWithTeams, 
   ReportGameData,
   ApiResponse,
   GameEvent
-} from '@/types';
-import { validateData, updateCourtSchema, assignTeamsToCourtSchema, reportGameSchema } from '@/utils/validation';
-import type { UpdateCourtInput, AssignTeamsInput } from '@/utils/validation';
+} from '../types';
+import { validateData, updateCourtSchema, assignTeamsToCourtSchema, reportGameSchema } from '../utils/validation';
+import type { UpdateCourtInput } from '../utils/validation';
 
 export class CourtService {
   // Get all courts with team information

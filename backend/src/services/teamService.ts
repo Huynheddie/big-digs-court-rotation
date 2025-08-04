@@ -3,10 +3,9 @@ import type {
   Team, 
   CreateTeamData, 
   UpdateTeamData, 
-  ApiResponse,
-  AppError 
-} from '@/types';
-import { validateData, createTeamSchema, updateTeamSchema } from '@/utils/validation';
+  ApiResponse
+} from '../types';
+import { validateData, createTeamSchema, updateTeamSchema } from '../utils/validation';
 
 export class TeamService {
   // Create a new team

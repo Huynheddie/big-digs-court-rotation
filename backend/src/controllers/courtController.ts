@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { CourtService } from '@/services/courtService';
-import type { UpdateCourtInput, AssignTeamsInput, ReportGameInput } from '@/utils/validation';
+import { CourtService } from '../services/courtService';
+import type { UpdateCourtInput, AssignTeamsInput, ReportGameInput } from '../utils/validation';
+import type { ReportGameData } from '../types';
 
 export class CourtController {
   // Get all courts
@@ -149,7 +150,7 @@ export class CourtController {
         });
       }
 
-      const result = CourtService.reportGame(gameData as any);
+      const result = CourtService.reportGame(gameData as ReportGameData);
 
       if (result.success) {
         res.status(200).json(result);

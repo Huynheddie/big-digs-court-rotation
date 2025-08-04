@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ValidationResult, ValidationError } from '@/types';
+import type { ValidationResult, ValidationError } from '../types';
 
 // Team validation schemas
 export const createTeamSchema = z.object({

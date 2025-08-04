@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useVolleyballState } from './hooks/useVolleyballState';
+import { useVolleyballStateWithApi } from './hooks/useVolleyballStateWithApi';
 import { CourtCard } from './components/CourtCard';
 
 import { Sidebar } from './components/Sidebar';
@@ -60,24 +60,24 @@ function AppContent() {
     // Handlers
     handleInputChange,
     handleScoreInputChange,
-    handleSubmit,
-    handleEditSubmit,
+    handleSubmitWithApi,
+    handleEditSubmitWithApi,
     handleCancel,
     handleReportGame,
-    handleReportGameSubmit,
+    handleReportGameSubmitWithApi,
     handleNetColorChange,
     handleOpenModal,
     handleAddSelectedTeamsToQueue,
     handleToggleTeamSelection,
     handleSelectAllTeams,
-    handleRemoveFromQueue,
+    handleRemoveFromQueueWithApi,
     handleAddSelectedTeamsToKingsCourtQueue,
     handleToggleTeamSelectionForKingsCourt,
     handleSelectAllTeamsForKingsCourt,
     handleRemoveFromKingsCourtQueue,
-    handleClearTeams,
-    handleFillFromQueue,
-    handleDeleteTeam,
+    handleClearCourtWithApi,
+    handleFillCourtWithApi,
+    handleDeleteTeamWithApi,
     handleOpenTeamDetails,
     handleCloseTeamDetails,
     handleEditTeamFromDetails,
@@ -87,7 +87,7 @@ function AppContent() {
     handleCloseCourtDetails,
     handleTeamChange,
     resetToEvent
-  } = useVolleyballState();
+  } = useVolleyballStateWithApi();
 
   // Page state
   const [currentPage, setCurrentPage] = useState<'courts' | 'teams'>('courts');
@@ -98,22 +98,22 @@ function AppContent() {
   const isTeamOnCourtForDelete = teamToDelete ? isTeamOnCourt(teamToDelete.name, teams) : false;
 
   // Enhanced handlers with toast notifications
-  const handleSubmitWithToast = (e: React.FormEvent) => {
-    const newEventId = handleSubmit(e);
-    showToast({
-      type: 'success',
-      title: 'Team Added!',
-      message: `Successfully added "${formData.teamName}" to the system. Click to view details.`,
-      onClick: () => {
-        if (newEventId) {
+  const handleSubmitWithToast = async (e: React.FormEvent) => {
+    const newEventId = await handleSubmitWithApi(e);
+    if (newEventId) {
+      showToast({
+        type: 'success',
+        title: 'Team Added!',
+        message: `Successfully added "${formData.teamName}" to the system. Click to view details.`,
+        onClick: () => {
           setExpandEventId(newEventId);
         }
-      }
-    });
+      });
+    }
   };
 
-  const handleEditSubmitWithToast = (e: React.FormEvent) => {
-    handleEditSubmit(e);
+  const handleEditSubmitWithToast = async (e: React.FormEvent) => {
+    await handleEditSubmitWithApi(e);
     showToast({
       type: 'success',
       title: 'Team Updated!',
@@ -121,21 +121,19 @@ function AppContent() {
     });
   };
 
-  const handleReportGameSubmitWithToast = (e: React.FormEvent) => {
+  const handleReportGameSubmitWithToast = async (e: React.FormEvent) => {
     const court = reportingCourtIndex !== null ? teams[reportingCourtIndex] : null;
     
-    const newEventId = handleReportGameSubmit(e);
+    const newEventId = await handleReportGameSubmitWithApi(e);
     
     // Don't automatically expand the sidebar - only expand when toast is clicked
-    if (court) {
+    if (court && newEventId) {
       showToast({
         type: 'success',
         title: 'Game Reported!',
         message: `Game between ${court.team1.name} and ${court.team2.name} has been recorded. Click to view details.`,
         onClick: () => {
-          if (newEventId) {
-            setExpandEventId(newEventId);
-          }
+          setExpandEventId(newEventId);
         }
       });
     }
@@ -158,9 +156,9 @@ function AppContent() {
     }
   };
 
-  const handleRemoveFromQueueWithToast = (index: number) => {
+  const handleRemoveFromQueueWithToast = async (index: number) => {
     const teamName = teamQueue[index]?.name || 'Team';
-    handleRemoveFromQueue(index);
+    await handleRemoveFromQueueWithApi(index);
     showToast({
       type: 'info',
       title: 'Team Removed',
@@ -199,30 +197,28 @@ function AppContent() {
     });
   };
 
-  const handleClearTeamsWithToast = (courtIndex: number) => {
+  const handleClearTeamsWithToast = async (courtIndex: number) => {
     const court = teams[courtIndex];
     const teamNames = [court.team1.name, court.team2.name].filter(name => name !== 'No Team');
-    const newEventId = handleClearTeams(courtIndex);
-    if (teamNames.length > 0) {
+    const newEventId = await handleClearCourtWithApi(courtIndex);
+    if (teamNames.length > 0 && newEventId) {
       showToast({
         type: 'warning',
         title: 'Teams Cleared',
         message: `Cleared teams from ${court.court}. Click to view details.`,
         onClick: () => {
-          if (newEventId) {
-            setExpandEventId(newEventId);
-          }
+          setExpandEventId(newEventId);
         }
       });
     }
   };
 
-  const handleFillFromQueueWithToast = (courtIndex: number) => {
+  const handleFillFromQueueWithToast = async (courtIndex: number) => {
     const court = teams[courtIndex];
     const isKingsCourt = court.court === "Kings Court";
     
     // Call the fill function and capture the event ID
-    const newEventId = handleFillFromQueue(courtIndex);
+    const newEventId = await handleFillCourtWithApi(courtIndex);
     
     // Check if teams were actually added by checking if an event ID was returned
     if (newEventId) {
@@ -249,21 +245,21 @@ function AppContent() {
     }
   };
 
-  const handleDeleteConfirmWithToast = () => {
+  const handleDeleteConfirmWithToast = async () => {
     if (deletingTeamIndex !== null) {
       const teamName = registeredTeams[deletingTeamIndex]?.name || 'Team';
-      const newEventId = handleDeleteTeam(deletingTeamIndex);
+      const newEventId = await handleDeleteTeamWithApi(deletingTeamIndex);
       setDeletingTeamIndex(null);
-      showToast({
-        type: 'error',
-        title: 'Team Deleted',
-        message: `"${teamName}" has been permanently deleted. Click to view details.`,
-        onClick: () => {
-          if (newEventId) {
+      if (newEventId) {
+        showToast({
+          type: 'error',
+          title: 'Team Deleted',
+          message: `"${teamName}" has been permanently deleted. Click to view details.`,
+          onClick: () => {
             setExpandEventId(newEventId);
           }
-        }
-      });
+        });
+      }
     }
   };
 

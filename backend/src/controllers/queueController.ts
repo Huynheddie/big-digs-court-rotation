@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { QueueService } from '@/services/queueService';
-import type { AddToQueueInput, RemoveFromQueueInput } from '@/utils/validation';
+import { QueueService } from '../services/queueService';
+import type { AddToQueueInput, RemoveFromQueueInput } from '../utils/validation';
 
 export class QueueController {
   // Get all queues

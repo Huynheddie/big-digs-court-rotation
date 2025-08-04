@@ -7,9 +7,8 @@ import type {
   QueueEntryWithTeam, 
   GameEvent,
   CreateTeamData,
-  UpdateTeamData,
-  ReportGameData
-} from '@/types';
+  UpdateTeamData
+} from '../types';
 
 // In-memory data storage
 class DataStore {

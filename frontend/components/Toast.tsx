@@ -104,7 +104,7 @@ export const Toast: React.FC<ToastProps> = ({
         mass: 1
       }}
       style={{
-        zIndex: 1000 - index,
+        zIndex: 1000 - (index || 0),
         transformOrigin: "top right"
       }}
       className={`${styles.bg} ${styles.border} border rounded-2xl shadow-lg backdrop-blur-sm max-w-sm w-full ${onClick ? 'cursor-pointer' : ''}`}

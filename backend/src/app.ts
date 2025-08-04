@@ -7,9 +7,9 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 // Import routes
-import teamRoutes from '@/routes/teamRoutes';
-import courtRoutes from '@/routes/courtRoutes';
-import queueRoutes from '@/routes/queueRoutes';
+import teamRoutes from './routes/teamRoutes';
+import courtRoutes from './routes/courtRoutes';
+import queueRoutes from './routes/queueRoutes';
 
 // Load environment variables
 dotenv.config();

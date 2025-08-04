@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { TeamService } from '@/services/teamService';
-import type { CreateTeamInput, UpdateTeamInput } from '@/utils/validation';
+import { TeamService } from '../services/teamService';
+import type { CreateTeamInput, UpdateTeamInput } from '../utils/validation';
+import type { CreateTeamData } from '../types';
 
 export class TeamController {
   // Create a new team
@@ -16,7 +17,7 @@ export class TeamController {
         });
       }
 
-      const result = TeamService.createTeam(teamData as any);
+      const result = TeamService.createTeam(teamData as CreateTeamData);
 
       if (result.success) {
         res.status(201).json(result);

@@ -15,6 +15,21 @@ export interface Team {
 }
 
 export interface Court {
+  id?: string;
+  court: string;
+  team1: Team | null;
+  team2: Team | null;
+  status: 'empty' | 'playing' | 'waiting' | 'In Progress' | 'Available';
+  score: string;
+  netColor: string;
+  team1ConsecutiveWins?: number;
+  team2ConsecutiveWins?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Extended court with team objects (for API compatibility)
+export interface CourtWithTeams {
   id: string;
   name: string;
   team1Id: string | null;
@@ -26,10 +41,6 @@ export interface Court {
   team2ConsecutiveWins: number;
   createdAt: Date;
   updatedAt: Date;
-}
-
-// Extended court with team objects
-export interface CourtWithTeams extends Omit<Court, 'team1Id' | 'team2Id'> {
   team1: Team | null;
   team2: Team | null;
 }
@@ -85,19 +96,20 @@ export interface ReportGameData {
 
 export interface GameEvent {
   id: string;
-  timestamp: Date;
-  type: 'court_cleared' | 'teams_added' | 'game_reported' | 'team_deleted' | 'team_added' | 'teams_queued' | 'team_edited';
+  type: 'court_cleared' | 'teams_added' | 'game_reported' | 'team_deleted' | 'team_added' | 'teams_queued';
   description: string;
+  courtId?: string;
   courtNumber?: string;
-  teams?: Team[];
+  teamIds?: string[];
   score?: string;
   netColor?: string;
-  winner?: Team;
-  loser?: Team;
+  winnerId?: string;
+  loserId?: string;
+  timestamp: Date;
   stateSnapshot?: {
-    teams: Court[];
-    registeredTeams: Team[];
-    teamQueue: Team[];
+    courts: Court[];
+    teams: Team[];
+    generalQueue: Team[];
     kingsCourtQueue: Team[];
   };
 }

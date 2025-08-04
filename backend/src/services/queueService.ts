@@ -2,9 +2,9 @@ import { dataStore } from './dataStore';
 import type { 
   QueueEntryWithTeam, 
   ApiResponse
-} from '@/types';
-import { validateData, addToQueueSchema, removeFromQueueSchema } from '@/utils/validation';
-import type { AddToQueueInput, RemoveFromQueueInput } from '@/utils/validation';
+} from '../types';
+import { validateData, addToQueueSchema, removeFromQueueSchema } from '../utils/validation';
+import type { AddToQueueInput, RemoveFromQueueInput } from '../utils/validation';
 
 export class QueueService {
   // Get all queues

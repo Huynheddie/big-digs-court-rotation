@@ -5,10 +5,6 @@ import App from '../App'
 // Mock the Toast components to avoid context issues in tests
 vi.mock('../components/Toast', () => ({
   Toast: ({ title }: { title: string }) => <div data-testid="toast">{title}</div>,
-  ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useToast: () => ({
-    showToast: vi.fn()
-  })
 }))
 
 vi.mock('../components/useToastHook', () => ({
@@ -19,6 +15,76 @@ vi.mock('../components/useToastHook', () => ({
 
 vi.mock('../components/ToastContextProvider', () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}))
+
+// Mock the API and WebSocket services
+vi.mock('../services/api', () => ({
+  teamApi: {
+    getAllTeams: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    createTeam: vi.fn().mockResolvedValue({ success: true, data: { id: '1', name: 'Test Team' } }),
+    updateTeam: vi.fn().mockResolvedValue({ success: true, data: { id: '1', name: 'Updated Team' } }),
+    deleteTeam: vi.fn().mockResolvedValue({ success: true }),
+  },
+  courtApi: {
+    getAllCourts: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    updateCourt: vi.fn().mockResolvedValue({ success: true, data: {} }),
+    clearCourt: vi.fn().mockResolvedValue({ success: true, data: {} }),
+    fillCourt: vi.fn().mockResolvedValue({ success: true, data: {} }),
+    reportGame: vi.fn().mockResolvedValue({ success: true, data: { id: '1' } }),
+  },
+  queueApi: {
+    getQueue: vi.fn().mockResolvedValue({ success: true, data: [] }),
+    addToQueue: vi.fn().mockResolvedValue({ success: true }),
+    removeFromQueue: vi.fn().mockResolvedValue({ success: true }),
+  },
+  healthApi: {
+    checkHealth: vi.fn().mockResolvedValue({ success: true }),
+  },
+}))
+
+vi.mock('../services/websocket', () => ({
+  default: {
+    isConnected: vi.fn().mockReturnValue(false),
+    onCourtUpdated: vi.fn(),
+    onGameReported: vi.fn(),
+    onTeamAdded: vi.fn(),
+    onTeamUpdated: vi.fn(),
+    onTeamDeleted: vi.fn(),
+    onQueueUpdated: vi.fn(),
+    onStateSync: vi.fn(),
+    emitCourtUpdate: vi.fn(),
+    emitGameReported: vi.fn(),
+    emitTeamAdded: vi.fn(),
+    emitTeamUpdated: vi.fn(),
+    emitTeamDeleted: vi.fn(),
+    emitQueueUpdated: vi.fn(),
+  },
+}))
+
+// Mock the hooks
+vi.mock('../hooks/useVolleyballApi', () => ({
+  useVolleyballApi: () => ({
+    isLoading: false,
+    error: null,
+    isConnected: false,
+    teams: [],
+    courts: [],
+    generalQueue: [],
+    kingsCourtQueue: [],
+    gameEvents: [],
+    createTeam: vi.fn().mockResolvedValue({ id: '1', name: 'Test Team' }),
+    updateTeam: vi.fn().mockResolvedValue({ id: '1', name: 'Updated Team' }),
+    deleteTeam: vi.fn().mockResolvedValue(true),
+    updateCourt: vi.fn().mockResolvedValue({}),
+    clearCourt: vi.fn().mockResolvedValue({}),
+    fillCourt: vi.fn().mockResolvedValue({}),
+    reportGame: vi.fn().mockResolvedValue({ id: '1' }),
+    addToQueue: vi.fn().mockResolvedValue(true),
+    removeFromQueue: vi.fn().mockResolvedValue(true),
+    clearQueue: vi.fn().mockResolvedValue(true),
+    checkHealth: vi.fn().mockResolvedValue(true),
+    clearError: vi.fn(),
+  }),
 }))
 
 describe('App Integration', () => {
