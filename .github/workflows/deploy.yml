@@ -32,6 +32,7 @@ jobs:
           node-version: "20"
           cache: 'npm'
       
+      # Install dependencies with fixes for npm optional dependencies bug
       - name: Install dependencies
         run: |
           npm ci
